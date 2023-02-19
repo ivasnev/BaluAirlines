@@ -1,0 +1,13 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Routes</title>
+</head>
+<body>
+<h1>Список роутов</h1>
+    <ul>
+        <li tal:repeat="link links"><a href="${link}">${link}</a></li>
+        <li tal:repeat="template templates">${template}</li>
+    </ul>
+</body>
+</html>
