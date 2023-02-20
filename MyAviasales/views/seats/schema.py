@@ -38,4 +38,4 @@ class SeatUpdate(BaseModel):
         enum = ['Economy', 'Comfort', 'Business']
         if v in enum:
             return v
-        raise ValueError('must be 3 characters')
+        raise ValueError('must be Economy, Comfort or Business')

@@ -1,4 +1,0 @@
-setuptools~=65.6.3
-sqlalchemy~=1.4.39
-pydantic~=1.10.5
-fastapi~=0.92.0

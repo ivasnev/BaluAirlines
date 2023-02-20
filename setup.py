@@ -13,7 +13,8 @@ requires = [
     'fastapi',
     'SQLAlchemy',
     'psycopg2-binary',
-    'pydantic'
+    'pydantic',
+    'uvicorn'
 ]
 
 tests_require = [

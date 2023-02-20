@@ -27,6 +27,12 @@ class FlightBase(BaseModel):
     class Config:
         orm_mode = True
 
+    @validator('departure_airport', 'arrival_airport')
+    def airport_code_must_be_3_char(cls, v):
+        if len(v) != 3:
+            raise ValueError('airport code must be 3 characters')
+        return v
+
     @validator('flight_no')
     def flight_no_must_be_6_char(cls, v):
         if len(v) != 6:
@@ -46,6 +52,15 @@ class FlightUpdate(BaseModel):
 
 
 class FlightPath(BaseModel):
+    fare_condition: str
+    num_of_passengers: int
     cost: float
     time: str
     flights: List[FlightBase]
+
+    @validator('fare_condition')
+    def fare_conditions_one_of(cls, v):
+        enum = ['Economy', 'Comfort', 'Business']
+        if v in enum:
+            return v
+        raise ValueError('must be Economy, Comfort or Business')

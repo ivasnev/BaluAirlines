@@ -19,6 +19,19 @@ def valid_flight_no(code) -> bool:
     return len(code) == 6
 
 
+def valid_fare_conditions(v) -> bool:
+    enum = ['Economy', 'Comfort', 'Business']
+    if v in enum:
+        return True
+    raise False
+
+
+def valid_airport_code(v) -> bool:
+    if len(v) != 3:
+        return False
+    return True
+
+
 @router.get("/all")
 async def multiple_get(page: Optional[int] = 0,
                        db: Session = Depends(get_db)
@@ -35,14 +48,24 @@ async def filter_get(
         arrival_airport: Optional[str] = 'VVO',
         max_transits: Optional[int] = 2,
         departure_date: Optional[datetime] = datetime.now(),
+        fare_condition: Optional[str] = 'Economy',
+        num_of_passengers: Optional[int] = 1,
         db: Session = Depends(get_db),
 ) -> List[Optional[FlightPath]]:
     res = await FlightController(db).get_flights_from_to_(
         departure_date=departure_date,
         departure_airport=departure_airport,
         arrival_airport=arrival_airport,
-        max_transits=max_transits
+        max_transits=max_transits,
+        fare_condition=fare_condition,
+        num_of_passengers=num_of_passengers
     )
+    if not valid_fare_conditions(fare_condition):
+        raise HTTPException(status_code=422, detail='must be Economy, Comfort or Business')
+    if not valid_airport_code(departure_airport):
+        raise HTTPException(status_code=422, detail='departure_airport code must be 3 characters')
+    if not valid_airport_code(arrival_airport):
+        raise HTTPException(status_code=422, detail='arrival_airport code must be 3 characters')
     if len(res) == 0:
         raise HTTPException(status_code=404, detail="Flight not found")
     return res

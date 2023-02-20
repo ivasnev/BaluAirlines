@@ -114,13 +114,15 @@ class FlightController(BaseController):
     async def get_flights_from_to_(self, departure_date: datetime,
                                    departure_airport: str,
                                    arrival_airport: str,
-                                   max_transits: int) -> List[Optional[FlightPath]]:
+                                   max_transits: int,
+                                   fare_condition: str,
+                                   num_of_passengers: int) -> List[Optional[FlightPath]]:
         routes = await self.get_routes_from_to(departure_airport, arrival_airport, max_transits)
         res = []
 
         for route in routes:
             flights = []
-            cost = 0.0
+            dist = 0.0
             prev = route[0]
             st_date = None
             for key in route[1:]:
@@ -142,15 +144,15 @@ class FlightController(BaseController):
                     break
                 if st_date is None:
                     st_date = flight.scheduled_departure
-                min_cost = self.session.query(func.min(TicketFlight.amount)).filter(
-                    TicketFlight.flight_id == flight.flight_id
-                )[0][0]
-                if min_cost:
-                    cost += float(min_cost)
+                departure_airport = self.session.query(AirportsDatum.coordinates).get(flight.departure_airport)[0][0]
+                arrival_airport = self.session.query(AirportsDatum.coordinates).get(flight.arrival_airport)[0][0]
+                dist += self.get_dist([departure_airport, arrival_airport])
                 departure_date = flight['scheduled_arrival']
                 flights.append(FlightBase.from_orm(flight))
             else:
-                res.append(FlightPath(cost=cost,
+                res.append(FlightPath(cost=self.generate_cost(fare_condition, dist),
+                                      fare_condition=fare_condition,
+                                      num_of_passengers=num_of_passengers,
                                       time=str(departure_date - st_date),
                                       flights=flights))
         return res
