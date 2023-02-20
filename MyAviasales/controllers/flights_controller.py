@@ -10,17 +10,17 @@ from sqlalchemy import and_
 
 class FlightController(BaseController):
     async def get_single_flight_by_id(self, key: int) -> Optional[FlightBase]:
-        flight = await self.session.query(Flight.flight_id,
-                                          Flight.flight_no,
-                                          Flight.scheduled_departure,
-                                          Flight.scheduled_arrival,
-                                          Flight.departure_airport,
-                                          Flight.arrival_airport,
-                                          Flight.status,
-                                          Flight.aircraft_code,
-                                          Flight.actual_departure,
-                                          Flight.actual_arrival
-                                          ).filter_by(
+        flight = self.session.query(Flight.flight_id,
+                                    Flight.flight_no,
+                                    Flight.scheduled_departure,
+                                    Flight.scheduled_arrival,
+                                    Flight.departure_airport,
+                                    Flight.arrival_airport,
+                                    Flight.status,
+                                    Flight.aircraft_code,
+                                    Flight.actual_departure,
+                                    Flight.actual_arrival
+                                    ).filter_by(
             flight_id=key).first()
         if flight:
             return FlightBase.from_orm(flight)
@@ -29,19 +29,19 @@ class FlightController(BaseController):
 
     async def get_single_flight_by_no_and_date(self, flight_no,
                                                departure_date) -> Optional[FlightBase]:
-        flight = await self.session.query(Flight.flight_id,
-                                          Flight.flight_no,
-                                          Flight.scheduled_departure,
-                                          Flight.scheduled_arrival,
-                                          Flight.departure_airport,
-                                          Flight.arrival_airport,
-                                          Flight.status,
-                                          Flight.aircraft_code,
-                                          Flight.actual_departure,
-                                          Flight.actual_arrival
-                                          ).filter(and_(Flight.flight_no == flight_no,
-                                                        Flight.scheduled_departure >= departure_date
-                                                        )).first()
+        flight = self.session.query(Flight.flight_id,
+                                    Flight.flight_no,
+                                    Flight.scheduled_departure,
+                                    Flight.scheduled_arrival,
+                                    Flight.departure_airport,
+                                    Flight.arrival_airport,
+                                    Flight.status,
+                                    Flight.aircraft_code,
+                                    Flight.actual_departure,
+                                    Flight.actual_arrival
+                                    ).filter(and_(Flight.flight_no == flight_no,
+                                                  Flight.scheduled_departure >= departure_date
+                                                  )).first()
         if flight:
             return FlightBase.from_orm(flight)
         else:
@@ -49,20 +49,20 @@ class FlightController(BaseController):
 
     async def get_single_flight_from_to(self, departure_airport,
                                         arrival_airport, departure_date) -> Optional[FlightBase]:
-        flight = await self.session.query(Flight.flight_id,
-                                          Flight.flight_no,
-                                          Flight.scheduled_departure,
-                                          Flight.scheduled_arrival,
-                                          Flight.departure_airport,
-                                          Flight.arrival_airport,
-                                          Flight.status,
-                                          Flight.aircraft_code,
-                                          Flight.actual_departure,
-                                          Flight.actual_arrival
-                                          ).filter(and_(Flight.departure_airport == departure_airport,
-                                                        Flight.arrival_airport == arrival_airport,
-                                                        Flight.scheduled_departure >= departure_date
-                                                        )).first()
+        flight = self.session.query(Flight.flight_id,
+                                    Flight.flight_no,
+                                    Flight.scheduled_departure,
+                                    Flight.scheduled_arrival,
+                                    Flight.departure_airport,
+                                    Flight.arrival_airport,
+                                    Flight.status,
+                                    Flight.aircraft_code,
+                                    Flight.actual_departure,
+                                    Flight.actual_arrival
+                                    ).filter(and_(Flight.departure_airport == departure_airport,
+                                                  Flight.arrival_airport == arrival_airport,
+                                                  Flight.scheduled_departure >= departure_date
+                                                  )).first()
         if flight:
             return FlightBase.from_orm(flight)
         else:
@@ -85,25 +85,25 @@ class FlightController(BaseController):
 
     async def get_all_flights(self, page: int) -> Optional[List[FlightBase]]:
         page_size = 50
-        flight_query = await self.session.query(Flight.flight_id,
-                                                Flight.flight_no,
-                                                Flight.scheduled_departure,
-                                                Flight.scheduled_arrival,
-                                                Flight.departure_airport,
-                                                Flight.arrival_airport,
-                                                Flight.status,
-                                                Flight.aircraft_code,
-                                                Flight.actual_departure,
-                                                Flight.actual_arrival
-                                                ).limit(page_size).offset(page * page_size)
+        flight_query = self.session.query(Flight.flight_id,
+                                          Flight.flight_no,
+                                          Flight.scheduled_departure,
+                                          Flight.scheduled_arrival,
+                                          Flight.departure_airport,
+                                          Flight.arrival_airport,
+                                          Flight.status,
+                                          Flight.aircraft_code,
+                                          Flight.actual_departure,
+                                          Flight.actual_arrival
+                                          ).limit(page_size).offset(page * page_size)
         flights = [FlightBase.from_orm(x) for x in flight_query if x is not None]
         return flights
 
     async def get_routes_from_to(self, departure_airport: str,
                                  arrival_airport: str,
                                  max_transits: int):
-        airports = await self.session.query(AirportsDatum.airport_code, AirportsDatum.city).all()
-        edges = await self.session.query(Flight.departure_airport, Flight.arrival_airport).distinct().all()
+        airports = self.session.query(AirportsDatum.airport_code, AirportsDatum.city).all()
+        edges = self.session.query(Flight.departure_airport, Flight.arrival_airport).distinct().all()
         nodes = [x[0] for x in airports]
         airports = {x[0]: x[1]['en'] for x in airports}
         listed_graph = {key: [] for key in nodes}
@@ -126,7 +126,7 @@ class FlightController(BaseController):
             prev = route[0]
             st_date = None
             for key in route[1:]:
-                flight = await self.session.query(Flight.flight_id,
+                flight = self.session.query(Flight.flight_id,
                                             Flight.scheduled_departure,
                                             Flight.scheduled_arrival,
                                             Flight.flight_no,
@@ -144,13 +144,16 @@ class FlightController(BaseController):
                     break
                 if st_date is None:
                     st_date = flight.scheduled_departure
-                departure_airport = await self.session.query(AirportsDatum.coordinates).get(flight.departure_airport)[0][0]
-                arrival_airport = await self.session.query(AirportsDatum.coordinates).get(flight.arrival_airport)[0][0]
-                dist += self.get_dist([departure_airport, arrival_airport])
+                departure_airport = self.session.query(AirportsDatum.coordinates).filter(
+                    AirportsDatum.airport_code == flight.departure_airport).first()[0]
+                arrival_airport = self.session.query(AirportsDatum.coordinates).filter(
+                    AirportsDatum.airport_code == flight.arrival_airport).first()[0]
+
+                dist += self.get_dist(eval(departure_airport), eval(arrival_airport))
                 departure_date = flight['scheduled_arrival']
                 flights.append(FlightBase.from_orm(flight))
             else:
-                res.append(FlightPath(cost=self.generate_cost(fare_condition, dist),
+                res.append(FlightPath(cost=self.generate_cost(fare_condition, dist) * num_of_passengers,
                                       fare_condition=fare_condition,
                                       num_of_passengers=num_of_passengers,
                                       time=str(departure_date - st_date),
@@ -182,7 +185,7 @@ class FlightController(BaseController):
     async def put_flight(self, _key: int, data: FlightUpdate) -> bool:
         if await self.get_single_flight_by_id(_key):
             return False
-        obj_to_update = await self.session.query(Flight).filter_by(flight_id=_key).first()
+        obj_to_update = self.session.query(Flight).filter_by(flight_id=_key).first()
         print(obj_to_update.__dict__.keys())
         data = data.dict()
         for key, value in data.items():

@@ -1,7 +1,8 @@
 import string
 from random import random
 from typing import Any, List, Tuple
-from math import sqrt
+from haversine import haversine
+from math import ceil
 
 
 class BaseController:
@@ -17,14 +18,14 @@ class BaseController:
         return book_ref
 
     @staticmethod
-    def get_dist(coords: List[Tuple[float]]):
-        return sqrt((coords[0][0] - coords[0][1]) ** 2 + (coords[1][0] - coords[1][1]) ** 2)
+    def get_dist(coords_f: Tuple[float], coords_s: Tuple[float]):
+        return haversine(coords_f[::-1], coords_s[::-1])
 
     @staticmethod
     def generate_cost(fare_conditions, dist) -> float:
         costs_for_cord = {
-            'Economy': 1113,
-            'Comfort': 1870,
-            'Business': 3305
+            'Economy': 10,
+            'Comfort': 20,
+            'Business': 30
         }
-        return round(dist * costs_for_cord[fare_conditions], 2)
+        return ceil(dist / 10) * 10 * costs_for_cord[fare_conditions]
