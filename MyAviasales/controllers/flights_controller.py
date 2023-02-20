@@ -4,7 +4,7 @@ from collections import deque
 from typing import Optional, List
 from MyAviasales.views.flights.schema import FlightBase, FlightUpdate, FlightPath
 from sqlalchemy import func
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import and_
 
 
@@ -67,6 +67,22 @@ class FlightController(BaseController):
             return FlightBase.from_orm(flight)
         else:
             return None
+
+    async def get_all_for_a_day(self, departure_date: datetime, departure_airport: str) -> Optional[List[FlightBase]]:
+        flight_query = self.session.query(Flight.flight_id,
+                                          Flight.scheduled_departure,
+                                          Flight.scheduled_arrival,
+                                          Flight.flight_no,
+                                          Flight.status,
+                                          Flight.departure_airport,
+                                          Flight.arrival_airport,
+                                          Flight.aircraft_code
+                                          ).filter(
+            Flight.scheduled_departure > departure_date,
+            Flight.scheduled_departure < departure_date + timedelta(days=1),
+            Flight.departure_airport == departure_airport
+        ).order_by(Flight.scheduled_departure).all()
+        return [FlightBase.from_orm(x) for x in flight_query if x is not None]
 
     @staticmethod
     def bfs_paths_with_city(graph: dict, start: str, goal: str, airport_to_city: dict, max_transits: int = 2):
@@ -159,6 +175,58 @@ class FlightController(BaseController):
                                       time=str(departure_date - st_date),
                                       flights=flights))
         return res
+
+    async def get_best_price_for_a_week(self, departure_date: datetime,
+                                        departure_airport: str,
+                                        arrival_airport: str,
+                                        max_transits: int,
+                                        fare_condition: str,
+                                        num_of_passengers: int) -> Optional[List[float]]:
+        routes = await self.get_routes_from_to(departure_airport, arrival_airport, max_transits)
+        cur_date = departure_date.date()
+        costs_for_week = []
+        for i in range(7):
+            res = []
+            for route in routes:
+                flights = []
+                dist = 0.0
+                prev = route[0]
+                departure_date = cur_date
+                st_date = None
+                for key in route[1:]:
+                    flight = self.session.query(Flight.flight_id,
+                                                Flight.scheduled_departure,
+                                                Flight.scheduled_arrival,
+                                                Flight.flight_no,
+                                                Flight.status,
+                                                Flight.departure_airport,
+                                                Flight.arrival_airport,
+                                                Flight.aircraft_code
+                                                ).filter(
+                        Flight.scheduled_departure >= departure_date,
+                        Flight.departure_airport == prev,
+                        Flight.arrival_airport == key,
+                        Flight.status == "Scheduled"
+                    ).order_by(Flight.scheduled_departure).first()
+                    prev = key
+                    if flight is None:
+                        break
+                    if st_date is None:
+                        if flight.scheduled_departure.day != cur_date.day or flight.scheduled_departure.month != cur_date.month:
+                            break
+                        st_date = flight.scheduled_departure
+                    departure_airport = self.session.query(AirportsDatum.coordinates).filter(
+                        AirportsDatum.airport_code == flight.departure_airport).first()[0]
+                    arrival_airport = self.session.query(AirportsDatum.coordinates).filter(
+                        AirportsDatum.airport_code == flight.arrival_airport).first()[0]
+                    dist += self.get_dist(eval(departure_airport), eval(arrival_airport))
+                    departure_date = flight['scheduled_arrival']
+                    flights.append(FlightBase.from_orm(flight))
+                else:
+                    res.append(self.generate_cost(fare_condition, dist) * num_of_passengers)
+            cur_date += timedelta(days=1)
+            costs_for_week.append(min(res, default=None))
+        return costs_for_week
 
     async def post_flight(self, data: FlightBase) -> FlightBase:
         obj_to_add = Flight(flight_no=data.flight_no,

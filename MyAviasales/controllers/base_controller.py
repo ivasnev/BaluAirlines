@@ -3,6 +3,7 @@ from random import random
 from typing import Any, List, Tuple
 from haversine import haversine
 from math import ceil
+from random import randint
 
 
 class BaseController:
@@ -28,4 +29,4 @@ class BaseController:
             'Comfort': 20,
             'Business': 30
         }
-        return ceil(dist / 10) * 10 * costs_for_cord[fare_conditions]
+        return ceil((dist*randint(50, 120)/100) / 10) * 10 * costs_for_cord[fare_conditions]

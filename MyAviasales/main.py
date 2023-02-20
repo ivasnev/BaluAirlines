@@ -1,6 +1,7 @@
 from fastapi import Depends, FastAPI
 from MyAviasales.views.aircraft_data import aircraft
 from MyAviasales.views.flights import flights
+from MyAviasales.views.bookings import bookings
 app = FastAPI()
 app.include_router(aircraft.router)
 app.include_router(flights.router)
