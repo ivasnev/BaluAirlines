@@ -1,7 +1,6 @@
 from MyAviasales.models import *
 from MyAviasales.controllers.base_controller import BaseController
 from sqlalchemy import or_
-import json
 
 
 class AirportController(BaseController):

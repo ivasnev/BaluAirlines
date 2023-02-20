@@ -1,17 +1,18 @@
 import json
-
+from MyAviasales.views.tickets.schema import *
 from MyAviasales.controllers.base_controller import BaseController
 from MyAviasales.models import Booking, Ticket, TicketFlight, BoardingPass
+from typing import Optional, List
 
 
 class TicketController(BaseController):
-    async def get_all_ticket_by_book_ref(self, key):
+    async def get_all_ticket_by_book_ref(self, key: str) -> Optional[List[TicketBase]]:
         tickets = self.session.query(
             Ticket.ticket_no, Ticket.book_ref, Ticket.passenger_id, Ticket.passenger_name, Ticket.contact_data
         ).filter(
             Ticket.book_ref == key
         ).all()
-        return [x._asdict() for x in tickets if x is not None]
+        return [TicketBase.from_orm(x) for x in tickets if x is not None]
 
     async def get_all_tickets(self):
         tickets = self.session.query(
@@ -70,4 +71,3 @@ class TicketController(BaseController):
         self.session.flush()
         self.session.commit()
         return True
-

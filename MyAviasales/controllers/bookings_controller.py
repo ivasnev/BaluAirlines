@@ -3,35 +3,34 @@ import json
 from MyAviasales.controllers.base_controller import BaseController
 from MyAviasales.models import Booking, Ticket, TicketFlight, Seat, Flight
 from .ticket_controller import TicketController
+from typing import Optional, List
+from MyAviasales.views.bookings.schema import BookingBase, BookingUpdate, BookingResponse
 
 
 class BookingController(BaseController):
-    async def get_all_bookings(self, page: int) -> list:
+    async def get_all_bookings(self, page: int) -> Optional[List[BookingBase]]:
         page_size = 50
         with self.session.begin():
             bookings_query = self.session.query(Booking.book_ref,
                                                 Booking.book_date,
                                                 Booking.total_amount).limit(page_size).offset(
                 int(page) * page_size)
-        bookings = [x._asdict() for x in bookings_query if x is not None]
+        if bookings_query is None:
+            return None
+        bookings = [BookingResponse.from_orm(x) for x in bookings_query if x is not None]
         for booking in bookings:
-            booking['book_date'] = str(booking['book_date'])
-            booking['total_amount'] = float(booking['total_amount'])
-            booking['tickets'] = TicketController(self.session) \
-                .get_all_ticket_by_book_ref(booking['book_ref'])
+            booking.tickets = await TicketController(self.session) \
+                .get_all_ticket_by_book_ref(booking.book_ref)
         return bookings
 
-    async def get_single_booking(self, key: str) -> dict:
+    async def get_single_booking(self, key: str) -> Optional[BookingBase]:
         booking = self.session.query(Booking.book_ref,
                                      Booking.book_date,
                                      Booking.total_amount).filter_by(
             book_ref=key).first()
         if booking:
-            booking = booking._asdict()
-            booking['book_date'] = str(booking['book_date'])
-            booking['total_amount'] = float(booking['total_amount'])
-            booking['tickets'] = TicketController(self.session) \
-                .get_all_ticket_by_book_ref(key)
+            booking = BookingResponse.from_orm(booking)
+            booking.tickets = TicketController(self.session).get_all_ticket_by_book_ref(key)
         return booking
 
     async def post_booking(self, data: dict) -> bool:

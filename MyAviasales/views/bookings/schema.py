@@ -1,6 +1,7 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, validator
 from datetime import datetime
+from MyAviasales.views.tickets.schema import TicketBase
 
 
 class BookingBase(BaseModel):
@@ -16,6 +17,10 @@ class BookingBase(BaseModel):
         if len(v) >= 7:
             raise ValueError('must be less 7 characters')
         return v
+
+
+class BookingResponse(BookingBase):
+    tickets: Optional[List[TicketBase]]
 
 
 class BookingUpdate(BaseModel):
