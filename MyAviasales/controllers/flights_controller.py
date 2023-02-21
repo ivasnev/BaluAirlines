@@ -245,19 +245,20 @@ class FlightController(BaseController):
         return FlightBase.from_orm(obj_to_add)
 
     async def delete_flight(self, key: int) -> bool:
-        if await self.get_single_flight_by_id(key):
+        if await self.get_single_flight_by_id(key) is None:
             return False
         self.session.delete(self.session.query(Flight).get(key))
         return True
 
-    async def put_flight(self, _key: int, data: FlightUpdate) -> bool:
-        if await self.get_single_flight_by_id(_key):
-            return False
-        obj_to_update = self.session.query(Flight).filter_by(flight_id=_key).first()
-        print(obj_to_update.__dict__.keys())
-        data = data.dict()
-        for key, value in data.items():
-            obj_to_update.__setattr__(key, value)
-        self.session.flush()
-        self.session.commit()
-        return True
+    async def put_flight(self, flight_id: int, data: FlightUpdate) -> bool:
+        return self.base_put(Flight, flight_id, data)
+        # obj_to_update = self.session.query(Flight).get(flight_id).one_or_none()
+        # if obj_to_update is None:
+        #     return False
+        # data = data.dict()
+        # for key, value in data.items():
+        #     if value:
+        #         obj_to_update.__setattr__(key, value)
+        # self.session.flush()
+        # self.session.commit()
+        # return True

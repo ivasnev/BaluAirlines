@@ -1,43 +1,58 @@
 # coding: utf-8
+from MyAviasales.controllers.bookings_controller import BookingController
+from fastapi import APIRouter, Depends, HTTPException, Path
+from MyAviasales.DataBase.database import get_db
+from .schema import *
+from sqlalchemy.orm import Session
+from typing import List
+
+router = APIRouter(
+    prefix="/bookings",
+    tags=["bookings"],
+    # dependencies=[Depends(get_token_header)],
+    responses={404: {"description": "Not found"}},
+)
 
 
+def valid_book_ref(code) -> bool:
+    return len(code) < 7
 
-# from study_proj.models import Booking
-# from cornice.resource import resource, view
-# import sqlalchemy as sa
-# from .schema import *
-# from cornice.validators import colander_body_validator
-# from study_proj.controllers.bookings_controller import BookingController
-#
-#
-# @resource(collection_path='/bookings', path='/bookings/{book_ref}')
-# class Bookings(object):
-#
-#     def __init__(self, request, context=None):
-#         self.request = request
-#         self.controller = BookingController(self.request.db)
-#
-#     def collection_get(self) -> list:
-#         return self.controller.get_all_bookings(int(self.request.params.get('page', default=0)))
-#
-#     def get(self) -> dict:
-#         return self.controller.get_single_booking(self.request.matchdict['book_ref'])
-#
-#     @view(schema=BookingPost(), validators=(colander_body_validator,))
-#     def collection_post(self):
-#         return self.controller.post_booking({'book_ref': self.request.params['book_ref'],
-#                                              'book_date': self.request.params['book_date'],
-#                                              'total_amount': self.request.params['total_amount']})
-#
-#     # TODO make cascade delete
-#     def delete(self):
-#         return self.controller.delete_booking(self.request.matchdict['book_ref'])
-#
-#     @view(schema=BookingPut(), validators=(colander_body_validator,))
-#     def put(self):
-#         data_to_update = {}
-#         keys = ['book_date', 'total_amount', 'book_ref']
-#         for key in keys:
-#             if self.request.params.get(key, default=None):
-#                 data_to_update[key] = self.request.params[key]
-#         return self.controller.put_booking(self.request.matchdict['book_ref'], data_to_update)
+
+@router.get("/")
+async def multiple_get(page: Optional[int] = 0,
+                       db: Session = Depends(get_db)
+                       ) -> Optional[List[BookingResponse]]:
+    res = await BookingController(db).get_all_bookings(page=page)
+    if len(res) == 0:
+        raise HTTPException(status_code=404, detail="Flight not found")
+    return res
+
+
+@router.get("/{book_ref}")
+async def single_get(book_ref: str, db: Session = Depends(get_db)) -> BookingResponse:
+    if not valid_book_ref(book_ref):
+        raise HTTPException(status_code=422, detail="book_ref must be less than 7 characters")
+    res = await BookingController(db).get_single_booking(book_ref)
+    if res is None:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    return res
+
+
+@router.post("/", responses={404: {"description": "Booking already exist"}})
+async def post(data: BookingPostRequest, db: Session = Depends(get_db)) -> bool:
+    return await BookingController(db).post_booking(data)
+    # if res is None:
+    #     raise HTTPException(status_code=404, detail="Booking cant create")
+    # return res
+
+
+@router.delete("/{book_ref}")
+async def delete(book_ref: str, db: Session = Depends(get_db)):
+    if not await BookingController(db).delete_booking(book_ref):
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+
+@router.put("/{book_ref}")
+async def put(data: BookingUpdate, book_ref: str, db: Session = Depends(get_db)):
+    if not await BookingController(db).put_booking(book_ref, data):
+        raise HTTPException(status_code=404, detail="Flight not found")
