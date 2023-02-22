@@ -30,7 +30,7 @@ class BookingController(BaseController):
             book_ref=key).first()
         if booking:
             booking = BookingResponse.from_orm(booking)
-            booking.tickets = TicketController(self.session).get_all_ticket_by_book_ref(key)
+            booking.tickets = await TicketController(self.session).get_all_ticket_by_book_ref(key)
         return booking
 
     async def post_booking(self, data: BookingPostRequest) -> bool:
