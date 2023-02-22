@@ -169,7 +169,7 @@ class FlightController(BaseController):
                 departure_date = flight['scheduled_arrival']
                 flights.append(FlightBase.from_orm(flight))
             else:
-                res.append(FlightPath(cost=self.generate_cost(fare_condition, dist) * num_of_passengers,
+                res.append(FlightPath(cost=self.generate_cost(fare_condition, dist, st_date.date()) * num_of_passengers,
                                       fare_condition=fare_condition,
                                       num_of_passengers=num_of_passengers,
                                       time=str(departure_date - st_date),
@@ -183,7 +183,7 @@ class FlightController(BaseController):
                                         fare_condition: str,
                                         num_of_passengers: int) -> Optional[List[float]]:
         routes = await self.get_routes_from_to(departure_airport, arrival_airport, max_transits)
-        cur_date = departure_date.date()
+        cur_date = departure_date.date() - timedelta(days=3)
         costs_for_week = []
         for i in range(7):
             res = []
@@ -223,7 +223,7 @@ class FlightController(BaseController):
                     departure_date = flight['scheduled_arrival']
                     flights.append(FlightBase.from_orm(flight))
                 else:
-                    res.append(self.generate_cost(fare_condition, dist) * num_of_passengers)
+                    res.append(self.generate_cost(fare_condition, dist, cur_date) * num_of_passengers)
             cur_date += timedelta(days=1)
             costs_for_week.append(min(res, default=None))
         return costs_for_week

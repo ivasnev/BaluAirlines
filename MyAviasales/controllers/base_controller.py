@@ -1,9 +1,10 @@
 import string
-from random import random
+from random import random, seed
 from typing import Any, List, Tuple
 from haversine import haversine
 from math import ceil
 from random import randint, choices
+from datetime import date, datetime, timedelta
 
 
 class BaseController:
@@ -23,7 +24,9 @@ class BaseController:
         return haversine(coords_f[::-1], coords_s[::-1])
 
     @staticmethod
-    def generate_cost(fare_conditions, dist) -> float:
+    def generate_cost(fare_conditions, dist, date: date) -> float:
+        date_to_seed = datetime(month=date.month, day=date.day, year=date.year) + timedelta(hours=datetime.now().hour)
+        seed(date_to_seed.ctime())
         costs_for_cord = {
             'Economy': 10,
             'Comfort': 20,

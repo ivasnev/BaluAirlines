@@ -47,11 +47,15 @@ async def post(data: AirportBase, db: Session = Depends(get_db)) -> bool:
 
 @router.delete("/{airport_code}")
 async def delete(airport_code: str, db: Session = Depends(get_db)):
+    if not valid_airport_code(airport_code):
+        raise HTTPException(status_code=422, detail="airport_code must be 3 characters")
     if not await AirportController(db).delete_airport(airport_code):
         raise HTTPException(status_code=404, detail="Airport not found")
 
 
 @router.put("/{airport_code}")
 async def put(data: AirportUpdate, airport_code: str, db: Session = Depends(get_db)):
+    if not valid_airport_code(airport_code):
+        raise HTTPException(status_code=422, detail="airport_code must be 3 characters")
     if not await AirportController(db).put_airport(airport_code, data):
         raise HTTPException(status_code=404, detail="Airport not found")
