@@ -15,7 +15,7 @@ router = APIRouter(
 
 
 def valid_seat_no(code) -> bool:
-    return len(code) == 3
+    return 2 <= len(code) <= 3
 
 
 def valid_aircraft_code(code) -> bool:
@@ -23,9 +23,10 @@ def valid_aircraft_code(code) -> bool:
 
 
 @router.get("/")
-async def multiple_get(db: Session = Depends(get_db)
+async def multiple_get(db: Session = Depends(get_db),
+                       page: Optional[int] = 0
                        ) -> Optional[List[SeatBase]]:
-    res = await SeatController(db).get_all_seats()
+    res = await SeatController(db).get_all_seats(page=page)
     if len(res) == 0:
         raise HTTPException(status_code=404, detail="Seat not found")
     return res
@@ -60,6 +61,7 @@ async def delete(seat_no: str, aircraft_code: str, db: Session = Depends(get_db)
     if not await SeatController(db).delete_seat(seat_no, aircraft_code):
         raise HTTPException(status_code=404, detail="Seat not found")
 
+
 @router.put("/{aircraft_code}/{seat_no}")
 async def put(data: SeatUpdate, seat_no: str, aircraft_code: str, db: Session = Depends(get_db)):
     if not valid_seat_no(seat_no):
@@ -67,7 +69,7 @@ async def put(data: SeatUpdate, seat_no: str, aircraft_code: str, db: Session = 
     if not valid_aircraft_code(aircraft_code):
         raise HTTPException(status_code=422, detail="aircraft_code must be 3 characters")
     if not await SeatController(db).put_seat(seat_no, aircraft_code, data):
-        raise HTTPException(status_code=404, detail="Airport not found")
+        raise HTTPException(status_code=404, detail="Seat not found")
 
 # from study_proj.controllers.seat_controller import SeatController
 # from study_proj.views.seats.validators import (SeatsPostValidator, SeatsPutValidator, id_validator)

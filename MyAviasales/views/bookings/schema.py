@@ -39,7 +39,7 @@ class Passenger(BaseModel):
 class BookingPostRequest(BaseModel):
     fare_condition: str
     flights: List[int]
-    passengers: Passenger
+    passengers: List[Passenger]
 
     @validator('fare_condition')
     def fare_conditions_one_of(cls, v):

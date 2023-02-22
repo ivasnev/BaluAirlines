@@ -7,16 +7,20 @@ import json
 
 class SeatController(BaseController):
 
-    async def get_single_seat(self, aircraft_code, seat_no) -> SeatBase:
+    async def get_single_seat(self, seat_no, aircraft_code) -> Optional[SeatBase]:
         """Получение одного места"""
         res = self.session.query(Seat.aircraft_code, Seat.seat_no, Seat.fare_conditions) \
             .filter(Seat.aircraft_code == aircraft_code, Seat.seat_no == seat_no).one_or_none()
-        return SeatBase.from_orm(res)
+        if res:
+            return SeatBase.from_orm(res)
+        return res
 
-    async def get_all_seats(self) -> Optional[List[SeatBase]]:
+    async def get_all_seats(self, page=0) -> Optional[List[SeatBase]]:
         """Получение всех мест"""
-        res = self.session.query(Seat.aircraft_code, Seat.seat_no).all()
-        return [SeatBase.from_orm(row) for row in res]
+        page_size = 50
+        res = self.session.query(Seat.aircraft_code, Seat.seat_no, Seat.fare_conditions).limit(page_size).offset(
+            page * page_size)
+        return [SeatBase.from_orm(row) for row in res if row is not None]
 
     async def post_seat(self, data: SeatBase) -> bool:
         """Добавление места"""
@@ -30,7 +34,7 @@ class SeatController(BaseController):
 
     async def delete_seat(self, seat_no: str, aircraft_code: str) -> bool:
         """Удаление места"""
-        deletable = self.session.query(Seat).get(seat_no=seat_no, aircraft_code=aircraft_code)
+        deletable = self.session.query(Seat).get({'seat_no': seat_no, 'aircraft_code': aircraft_code})
         self.session.delete(deletable)
         self.session.commit()
         return True

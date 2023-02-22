@@ -12,10 +12,10 @@ class BoardingPassBase(BaseModel):
         orm_mode = True
 
     @validator('seat_no')
-    def seat_no_must_be_less_5_char(cls, v):
-        if len(v) >= 5:
-            raise ValueError('must be less 5 characters')
-        return v
+    def seat_no_must_be_2or3_char(cls, v):
+        if 2 <= len(v) <= 3:
+            return v
+        raise ValueError('must be 3 characters')
 
     @validator('ticket_no')
     def ticket_no_must_be_less_5_char(cls, v):
@@ -29,8 +29,8 @@ class BoardingPassUpdate(BaseModel):
     seat_no: Optional[str]
 
     @validator('seat_no')
-    def seat_no_must_be_less_5_char(cls, v):
-        if len(v) >= 5:
-            raise ValueError('must be less 5 characters')
-        return v
+    def seat_no_must_be_2or3_char(cls, v):
+        if 2 <= len(v) <= 3:
+            return v
+        raise ValueError('must be 3 characters')
 

@@ -11,11 +11,24 @@ class AirportBase(BaseModel):
     airport_code: str
     airport_name: Name
     city: Name
-    coordinates: tuple
+    coordinates: str
     timezone: str
 
     class Config:
         orm_mode = True
+
+    @validator('coordinates')
+    def coordinates_convert(cls, v: str):
+        try:
+            if v[0] == '(' and v[-1] == ')':
+                a = list(map(float, v[1:-1].split(',')))
+                if len(a) != 2:
+                    raise ValueError('coordinates not valid')
+            else:
+                raise ValueError('coordinates not valid')
+        except:
+            raise ValueError('coordinates not valid')
+        return v
 
     @validator('airport_code')
     def airport_code_must_be_3_char(cls, v):
@@ -27,5 +40,5 @@ class AirportBase(BaseModel):
 class AirportUpdate(BaseModel):
     airport_name: Optional[Name]
     city: Optional[Name]
-    coordinates: Optional[tuple]
+    coordinates: Optional[str]
     timezone: Optional[str]

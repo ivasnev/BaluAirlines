@@ -39,11 +39,11 @@ async def single_get(book_ref: str, db: Session = Depends(get_db)) -> BookingRes
 
 
 @router.post("/", responses={404: {"description": "Booking already exist"}})
-async def post(data: BookingPostRequest, db: Session = Depends(get_db)) -> bool:
-    return await BookingController(db).post_booking(data)
-    # if res is None:
-    #     raise HTTPException(status_code=404, detail="Booking cant create")
-    # return res
+async def post(data: BookingPostRequest, db: Session = Depends(get_db)):
+    res = await BookingController(db).post_booking(data)
+    if not res:
+        raise HTTPException(status_code=404, detail="Booking cant create")
+    return res
 
 
 @router.delete("/{book_ref}")

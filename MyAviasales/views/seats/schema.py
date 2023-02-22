@@ -17,17 +17,17 @@ class SeatBase(BaseModel):
         return v
 
     @validator('seat_no')
-    def seat_no_must_be_3_char(cls, v):
-        if len(v) != 3:
-            raise ValueError('must be 3 characters')
-        return v
+    def seat_no_must_be_2or3_char(cls, v):
+        if 2 <= len(v) <= 3:
+            return v
+        raise ValueError('must be 3 characters')
 
     @validator('fare_conditions')
     def fare_conditions_one_of(cls, v):
         enum = ['Economy', 'Comfort', 'Business']
         if v in enum:
             return v
-        raise ValueError('must be 3 characters')
+        raise ValueError('must be Economy, Comfort or Business')
 
 
 class SeatUpdate(BaseModel):
