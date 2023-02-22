@@ -12,7 +12,7 @@ class AirportBase(BaseModel):
     airport_name: Name
     city: Name
     coordinates: tuple
-    timezone = str
+    timezone: str
 
     class Config:
         orm_mode = True
@@ -25,14 +25,7 @@ class AirportBase(BaseModel):
 
 
 class AirportUpdate(BaseModel):
-    airport_code: Optional[str]
     airport_name: Optional[Name]
     city: Optional[Name]
     coordinates: Optional[tuple]
-    timezone = Optional[str]
-
-    @validator('airport_code')
-    def airport_code_must_be_3_char(cls, v):
-        if len(v) != 3:
-            raise ValueError('must be 3 characters')
-        return v
+    timezone: Optional[str]

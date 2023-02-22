@@ -24,7 +24,7 @@ async def multiple_get(page: Optional[int] = 0,
                        ) -> Optional[List[BookingResponse]]:
     res = await BookingController(db).get_all_bookings(page=page)
     if len(res) == 0:
-        raise HTTPException(status_code=404, detail="Flight not found")
+        raise HTTPException(status_code=404, detail="Booking not found")
     return res
 
 
@@ -55,4 +55,4 @@ async def delete(book_ref: str, db: Session = Depends(get_db)):
 @router.put("/{book_ref}")
 async def put(data: BookingUpdate, book_ref: str, db: Session = Depends(get_db)):
     if not await BookingController(db).put_booking(book_ref, data):
-        raise HTTPException(status_code=404, detail="Flight not found")
+        raise HTTPException(status_code=404, detail="Booking not found")
