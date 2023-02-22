@@ -11,7 +11,7 @@ class AirportBase(BaseModel):
     airport_code: str
     airport_name: Name
     city: Name
-    coordinates: tuple
+    coordinates: tuple[float]
     timezone: str
 
     class Config:
@@ -27,5 +27,5 @@ class AirportBase(BaseModel):
 class AirportUpdate(BaseModel):
     airport_name: Optional[Name]
     city: Optional[Name]
-    coordinates: Optional[tuple]
+    coordinates: Optional[tuple[float]]
     timezone: Optional[str]

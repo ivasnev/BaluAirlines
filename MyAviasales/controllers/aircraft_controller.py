@@ -6,13 +6,13 @@ from MyAviasales.views.aircraft_data.schema import AircraftBase, AircraftUpdate
 
 class AircraftController(BaseController):
     async def get_all_aircraft(self) -> Union[List[AircraftBase], None]:
-        aircraft = self.session.query(
+        aircraft = await self.session.query(
             AircraftsDatum.aircraft_code, AircraftsDatum.model, AircraftsDatum.range
         ).all()
         return [AircraftBase.parse_obj(row._asdict()) for row in aircraft]
 
     async def get_single_aircraft(self, key: str) -> Union[AircraftBase, None]:
-        aircraft = self.session.query(
+        aircraft = await self.session.query(
                 AircraftsDatum.aircraft_code, AircraftsDatum.model, AircraftsDatum.range
             ).filter(
                 AircraftsDatum.aircraft_code == key
@@ -30,25 +30,25 @@ class AircraftController(BaseController):
             model=dict(data.model),
             range=data.range,
         )
-        self.session.add(obj_to_add)
-        self.session.commit()
+        await self.session.add(obj_to_add)
+        await self.session.commit()
         return AircraftBase.from_orm(obj_to_add)
 
     # TODO какая-то херь а не делит
     async def delete_aircraft(self, key: str) -> Union[AircraftBase, None]:
         # При удалении самолета произойдет конфликт со значениями в таблице рейсов
-        aircraft = self.session.query(AircraftsDatum).get(key)
+        aircraft = await self.session.query(AircraftsDatum).get(key)
         if aircraft is None:
             return None
-        flights = self.session.query(Flight).filter(Flight.aircraft_code == key).all()
+        flights = await self.session.query(Flight).filter(Flight.aircraft_code == key).all()
         for flight in flights:
             flight.status = 'Cancelled'
-            self.session.add(flight)
-            self.session.flush()
+            await self.session.add(flight)
+            await self.session.flush()
         return AircraftBase.from_orm(aircraft)
 
     async def put_aircraft(self, key: str, data: AircraftUpdate) -> Union[AircraftBase, None]:
-        aircraft = self.session.query(AircraftsDatum).filter(
+        aircraft = await self.session.query(AircraftsDatum).filter(
             AircraftsDatum.aircraft_code == key
         ).one_or_none()
         if aircraft is None:
@@ -58,7 +58,7 @@ class AircraftController(BaseController):
             aircraft.range = data.range
         if data.model:
             aircraft.model = dict(data.model)
-        self.session.add(aircraft)
-        self.session.flush()
-        self.session.commit()
+        await self.session.add(aircraft)
+        await self.session.flush()
+        await self.session.commit()
         return AircraftBase.from_orm(aircraft)

@@ -5,7 +5,7 @@ from MyAviasales.models import TicketFlight
 class TicketFlightController(BaseController):
     async def get_all_ticket_flights(self, page: int) -> list:
         page_size = 50
-        ticket_flight_query = self.session.query(TicketFlight.ticket_no,
+        ticket_flight_query = await self.session.query(TicketFlight.ticket_no,
                                                  TicketFlight.flight_id,
                                                  TicketFlight.fare_conditions,
                                                  TicketFlight.amount
@@ -17,7 +17,7 @@ class TicketFlightController(BaseController):
         return ticket_flights
 
     async def get_single_ticket_flight(self, key: dict) -> dict:
-        ticket_flight = self.session.query(TicketFlight.ticket_no,
+        ticket_flight = await self.session.query(TicketFlight.ticket_no,
                                            TicketFlight.flight_id,
                                            TicketFlight.fare_conditions,
                                            TicketFlight.amount
@@ -31,24 +31,24 @@ class TicketFlightController(BaseController):
         return ticket_flight
 
     async def post_ticket_flight(self, data: dict) -> bool:
-        self.session.add(TicketFlight(ticket_no=data['ticket_no'],
+        await self.session.add(TicketFlight(ticket_no=data['ticket_no'],
                                       flight_id=data['flight_id'],
                                       fare_conditions=data['fare_conditions'],
                                       amount=data['amount']
                                       ))
-        self.session.flush()
-        self.session.commit()
+        await self.session.flush()
+        await self.session.commit()
         return True
 
     async def delete_ticket_flight(self, key: dict) -> bool:
-        self.session.delete(self.session.query(TicketFlight).get(key))
+        await self.session.delete(await self.session.query(TicketFlight).get(key))
         return True
 
     async def put_ticket_flight(self, _key: dict, data: dict) -> bool:
-        obj_to_update = self.session.query(TicketFlight).get(_key)
+        obj_to_update = await self.session.query(TicketFlight).get(_key)
         print(obj_to_update.__dict__.keys())
         for key, value in data.items():
             obj_to_update.__setattr__(key, value)
-        self.session.flush()
-        self.session.commit()
+        await self.session.flush()
+        await self.session.commit()
         return True
