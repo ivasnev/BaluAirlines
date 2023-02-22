@@ -9,9 +9,9 @@ from random import randint, choices
 class BaseController:
 
     def __init__(self, session):
-        await self.session = session
+        self.session = session
 
-    def generate_varchar_key(self, length: int, model: Any) -> str:
+    async def generate_varchar_key(self, length: int, model: Any) -> str:
         """Случайная генерация нового ключа для резервации"""
         key = ''.join(choices(string.ascii_uppercase + string.digits, k=length))
         while await self.session.query(model).get(key):
@@ -31,7 +31,7 @@ class BaseController:
         }
         return ceil((dist*randint(50, 120)/100) / 10) * 10 * costs_for_cord[fare_conditions]
 
-    def base_put(self, model, key, data) -> bool:
+    async def base_put(self, model, key, data) -> bool:
         obj_to_update = await self.session.query(model).get(key).one_or_none()
         if obj_to_update is None:
             return False
