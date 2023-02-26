@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from MyAviasales.views.aircraft_data import aircraft
 from MyAviasales.views.flights import flights
 from MyAviasales.views.bookings import bookings

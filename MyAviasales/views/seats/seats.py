@@ -1,6 +1,6 @@
 # coding: utf-8
 from MyAviasales.controllers.seat_controller import SeatController
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException
 from MyAviasales.DataBase.database import get_db
 from .schema import SeatBase, SeatUpdate
 from sqlalchemy.orm import Session

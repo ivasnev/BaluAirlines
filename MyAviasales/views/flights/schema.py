@@ -10,7 +10,7 @@
 
 from typing import Optional, List
 from pydantic import BaseModel, validator
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
 class FlightBase(BaseModel):

@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from MyAviasales.controllers.ticket_flights_controller import TicketFlightController
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException
 from MyAviasales.DataBase.database import get_db
 from .schema import TicketFlightBase, TicketFlightUpdate
 from sqlalchemy.orm import Session

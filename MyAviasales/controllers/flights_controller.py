@@ -1,9 +1,8 @@
 from MyAviasales.controllers.base_controller import BaseController
-from MyAviasales.models import Flight, AirportsDatum, TicketFlight
+from MyAviasales.models import Flight, AirportsDatum
 from collections import deque
 from typing import Optional, List
 from MyAviasales.views.flights.schema import FlightBase, FlightUpdate, FlightPath
-from sqlalchemy import func
 from datetime import datetime, timedelta
 from sqlalchemy import and_
 

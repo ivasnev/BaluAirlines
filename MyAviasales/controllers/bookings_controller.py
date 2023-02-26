@@ -1,11 +1,9 @@
-import json
-
 from datetime import datetime
 from MyAviasales.controllers.base_controller import BaseController
 from MyAviasales.models import Booking, Ticket, TicketFlight, Flight, AirportsDatum
 from .ticket_controller import TicketController
 from typing import Optional, List
-from MyAviasales.views.bookings.schema import BookingBase, BookingUpdate, BookingResponse, BookingPostRequest
+from MyAviasales.views.bookings.schema import BookingUpdate, BookingResponse, BookingPostRequest
 from MyAviasales.views.tickets.schema import TicketBase
 
 
@@ -71,7 +69,7 @@ class BookingController(BaseController):
             amount = self.generate_cost(
                 fare_conditions=data.fare_condition,
                 dist=self.get_dist(eval(departure_airport), eval(arrival_airport)),
-                date=flight.scheduled_departure
+                _date=flight.scheduled_departure
             )
             for ticket_no in tickets_no:
                 self.session.add(

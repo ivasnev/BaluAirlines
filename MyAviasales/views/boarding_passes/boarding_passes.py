@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from MyAviasales.controllers.boarding_pass_controller import BoardingPassController
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException
 from MyAviasales.DataBase.database import get_db
 from .schema import *
 from sqlalchemy.orm import Session

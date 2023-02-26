@@ -1,4 +1,3 @@
-import json
 from MyAviasales.views.tickets.schema import *
 from MyAviasales.controllers.base_controller import BaseController
 from MyAviasales.models import Booking, Ticket, TicketFlight, BoardingPass

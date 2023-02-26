@@ -1,5 +1,5 @@
 # coding: utf-8
-from sqlalchemy import ARRAY, CHAR, CheckConstraint, Column, DateTime, ForeignKey, ForeignKeyConstraint, Integer, \
+from sqlalchemy import ARRAY, CHAR, CheckConstraint, Column, DateTime, ForeignKey, Integer, \
     Numeric, String, Table, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import INTERVAL, JSONB
 from sqlalchemy.sql.sqltypes import NullType

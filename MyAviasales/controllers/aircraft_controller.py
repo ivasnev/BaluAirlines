@@ -34,7 +34,6 @@ class AircraftController(BaseController):
         self.session.commit()
         return AircraftBase.from_orm(obj_to_add)
 
-    # TODO какая-то херь а не делит
     async def delete_aircraft(self, key: str) -> Union[AircraftBase, None]:
         # При удалении самолета произойдет конфликт со значениями в таблице рейсов
         aircraft = self.session.query(AircraftsDatum).get(key)

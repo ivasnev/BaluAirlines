@@ -2,7 +2,6 @@ from MyAviasales.models import *
 from MyAviasales.controllers.base_controller import BaseController
 from MyAviasales.views.seats.schema import *
 from typing import List, Optional
-import json
 
 
 class SeatController(BaseController):

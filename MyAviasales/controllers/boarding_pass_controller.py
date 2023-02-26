@@ -1,10 +1,8 @@
-import json
-
 from sqlalchemy import and_
 
 from MyAviasales.controllers.base_controller import BaseController
-from MyAviasales.models import Booking, Ticket, TicketFlight, BoardingPass
-from typing import Optional, List
+from MyAviasales.models import TicketFlight, BoardingPass
+from typing import List
 from MyAviasales.views.boarding_passes.schema import *
 from sqlalchemy import func
 
