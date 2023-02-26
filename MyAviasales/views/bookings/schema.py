@@ -30,10 +30,23 @@ class Passenger(BaseModel):
     contact_data: Optional[ContactData]
 
     @validator('passenger_id')
-    def passenger_id_must_less_20_char(cls, v):
-        if len(v) > 20:
-            raise ValueError('must be less 20 characters')
-        return v
+    def passenger_id_ser_num(cls, v: str):
+        if len(v) == 11:
+            res = list(v.split(" "))
+            if len(res) == 2 and len(res[0]) == 4:
+                try:
+                    res[0] = int(res[0])
+                    res[1] = int(res[1])
+                    return v
+                except ValueError:
+                    pass
+        raise ValueError('must be like 1234 567890')
+
+    # @validator('passenger_id')
+    # def passenger_id_must_less_20_char(cls, v):
+    #     if len(v) > 20:
+    #         raise ValueError('must be less 20 characters')
+    #     return v
 
 
 class BookingPostRequest(BaseModel):

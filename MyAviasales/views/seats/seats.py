@@ -2,9 +2,9 @@
 from MyAviasales.controllers.seat_controller import SeatController
 from fastapi import APIRouter, Depends, HTTPException, Path
 from MyAviasales.DataBase.database import get_db
-from .schema import *
+from .schema import SeatBase, SeatUpdate
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
 router = APIRouter(
     prefix="/seats",

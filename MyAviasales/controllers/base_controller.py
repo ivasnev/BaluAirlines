@@ -19,6 +19,13 @@ class BaseController:
             key = ''.join(choices(string.ascii_uppercase + string.digits, k=length))
         return key
 
+    def generate_digit_varchar_key(self, length: int, model: Any) -> str:
+        """Случайная генерация нового ключа для резервации"""
+        key = ''.join(choices(string.digits, k=length))
+        while self.session.query(model).get(key):
+            key = ''.join(choices(string.digits, k=length))
+        return key
+
     @staticmethod
     def get_dist(coords_f: Tuple[float], coords_s: Tuple[float]):
         return haversine(coords_f[::-1], coords_s[::-1])
@@ -32,7 +39,7 @@ class BaseController:
             'Comfort': 20,
             'Business': 30
         }
-        return ceil((dist*randint(50, 120)/100) / 10) * 10 * costs_for_cord[fare_conditions]
+        return ceil((dist * randint(50, 120) / 100) / 10) * 10 * costs_for_cord[fare_conditions]
 
     def base_put(self, model, key, data) -> bool:
         obj_to_update = self.session.query(model).get(key)

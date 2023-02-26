@@ -45,7 +45,7 @@ class BookingController(BaseController):
         tickets_no = []
         tickets = []
         for passenger in data.passengers:
-            ticket_no = self.generate_varchar_key(13, Ticket)
+            ticket_no = self.generate_digit_varchar_key(13, Ticket)
             tickets_no.append(ticket_no)
             ticket = Ticket(
                 ticket_no=ticket_no,

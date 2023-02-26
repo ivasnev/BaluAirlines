@@ -15,7 +15,7 @@ class SeatController(BaseController):
             return SeatBase.from_orm(res)
         return res
 
-    async def get_all_seats(self, page=0) -> Optional[List[SeatBase]]:
+    async def get_all_seats(self, page: int = 0) -> Optional[List[SeatBase]]:
         """Получение всех мест"""
         page_size = 50
         res = self.session.query(Seat.aircraft_code, Seat.seat_no, Seat.fare_conditions).limit(page_size).offset(

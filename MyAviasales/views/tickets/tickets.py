@@ -1,42 +1,63 @@
 # coding: utf-8
+from MyAviasales.controllers.ticket_controller import TicketController
+from fastapi import APIRouter, Depends, HTTPException, Path
+from MyAviasales.DataBase.database import get_db
+from .schema import TicketBase, TicketUpdate, TicketPost
+from sqlalchemy.orm import Session
+from typing import List, Optional
 
-import json
-
-from cornice.resource import resource, view
-from sqlalchemy import update
-
-from study_proj.controllers.ticket_controller import TicketController
-from study_proj.models import Ticket
-from study_proj.views.tickets.validators import (ticket_no_validator,
-                                                 request_validator)
+router = APIRouter(
+    prefix="/tickets",
+    tags=["tickets"],
+    # dependencies=[Depends(get_token_header)],
+    responses={404: {"description": "Not found"}},
+)
 
 
-@resource(collection_path="/tickets", path="/ticket/{book_ref}/{ticket_no}")
-class Ticket(object):
-    def __init__(self, request, context=None):
-        self.request = request
-        self.controller = TicketController(self.request.db)
+def valid_ticket_no(code) -> bool:
+    return len(code) == 13
 
-    def collection_get(self):
-        return self.controller.get_all_tickets()
 
-    @view(renderer="json", validators=ticket_no_validator)
-    def get(self):
-        return self.controller.get_single_ticket(self.request.matchdict)
 
-    @view(renderer="json", validators=request_validator("post_ticket"))
-    def collection_post(self):
-        return self.controller.post_ticket(self.request.POST)
+@router.get("/")
+async def multiple_get(db: Session = Depends(get_db),
+                       page: Optional[int] = 0
+                       ) -> Optional[List[TicketBase]]:
+    res = await TicketController(db).get_all_tickets(page=page)
+    if len(res) == 0:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    return res
 
-    @view(renderer="json", validators=ticket_no_validator)
-    def delete(self):
-        return self.controller.delete_ticket(self.request.matchdict)
 
-    @view(renderer="json", validators=request_validator("put_ticket"))
-    def put(self):
-        data_to_update = {}
-        keys = ['book_ref', 'passenger_id', 'passenger_name', 'contact_data']
-        for key in keys:
-            if self.request.POST.get(key, default=None):
-                data_to_update[key] = self.request.params[key]
-        return self.controller.put_ticket({**self.request.matchdict, **data_to_update})
+@router.get("/{ticket_no}")
+async def single_get(ticket_no: str, db: Session = Depends(get_db)) -> TicketBase:
+    if not valid_ticket_no(ticket_no):
+        raise HTTPException(status_code=422, detail="ticket_no must be 13 characters")
+    res = await TicketController(db).get_single_ticket(ticket_no)
+    if res is None:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    return res
+
+
+@router.post("/")
+async def post(data: TicketPost, db: Session = Depends(get_db)) -> bool:
+    return await TicketController(db).post_ticket(data)
+    # if res is None:
+    #     raise HTTPException(status_code=404, detail="Ticket cant create")
+    # return res
+
+
+@router.delete("/{ticket_no}")
+async def delete(ticket_no: str, db: Session = Depends(get_db)):
+    if not valid_ticket_no(ticket_no):
+        raise HTTPException(status_code=422, detail="ticket_no must be 13 characters")
+    if not await TicketController(db).delete_ticket(ticket_no):
+        raise HTTPException(status_code=404, detail="Ticket not found")
+
+
+@router.put("/{ticket_no}")
+async def put(data: TicketUpdate, ticket_no: str, db: Session = Depends(get_db)):
+    if not valid_ticket_no(ticket_no):
+        raise HTTPException(status_code=422, detail="ticket_no must be 13 characters")
+    if not await TicketController(db).put_ticket(ticket_no, data):
+        raise HTTPException(status_code=404, detail="Ticket not found")

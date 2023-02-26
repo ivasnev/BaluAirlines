@@ -14,7 +14,8 @@ requires = [
     'SQLAlchemy',
     'psycopg2-binary',
     'pydantic',
-    'uvicorn'
+    'uvicorn',
+    'haversine'
 ]
 
 tests_require = [
