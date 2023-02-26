@@ -1,5 +1,4 @@
 # coding: utf-8
-# coding: utf-8
 from sqlalchemy import ARRAY, CHAR, CheckConstraint, Column, DateTime, ForeignKey, ForeignKeyConstraint, Integer, \
     Numeric, String, Table, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import INTERVAL, JSONB
@@ -191,13 +190,9 @@ class TicketFlight(Base):
     ticket = relationship('Ticket')
 
 
-class BoardingPass(TicketFlight):
+class BoardingPass(Base):
     __tablename__ = 'boarding_passes'
     __table_args__ = (
-        ForeignKeyConstraint(['ticket_no', 'flight_id'],
-                             ['bookings.ticket_flights.ticket_no', 'bookings.ticket_flights.flight_id']),
-        UniqueConstraint('flight_id', 'boarding_no'),
-        UniqueConstraint('flight_id', 'seat_no'),
         {'schema': 'bookings', 'comment': 'Boarding passes'}
     )
 

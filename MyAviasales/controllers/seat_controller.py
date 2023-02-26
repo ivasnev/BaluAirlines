@@ -35,6 +35,8 @@ class SeatController(BaseController):
     async def delete_seat(self, seat_no: str, aircraft_code: str) -> bool:
         """Удаление места"""
         deletable = self.session.query(Seat).get({'seat_no': seat_no, 'aircraft_code': aircraft_code})
+        if deletable is None:
+            return False
         self.session.delete(deletable)
         self.session.commit()
         return True

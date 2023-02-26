@@ -1,36 +1,68 @@
 # coding: utf-8
-from cornice.resource import resource, view
 
-from study_proj.controllers.boarding_pass_controller import BoardingPassController
-from study_proj.views.boarding_passes.validators import (request_validator)
+from MyAviasales.controllers.boarding_pass_controller import BoardingPassController
+from fastapi import APIRouter, Depends, HTTPException, Path
+from MyAviasales.DataBase.database import get_db
+from .schema import *
+from sqlalchemy.orm import Session
+from typing import List
+
+router = APIRouter(
+    prefix="/boarding_pass",
+    tags=["boarding_pass"],
+    # dependencies=[Depends(get_token_header)],
+    responses={404: {"description": "Not found"}},
+)
 
 
-@resource(collection_path="/boarding_passes", path="/boarding_pass/{ticket_no}/{flight_id}")
-class BoardingPass(object):
-    def __init__(self, request, context=None):
-        self.request = request
-        self.controller = BoardingPassController(self.request.db)
+def valid_ticket_no(code) -> bool:
+    return 0 < len(code) <= 13
 
-    def collection_get(self):
-        return self.controller.get_all_boarding_passes()
 
-    @view(renderer="json")
-    def get(self):
-        return self.controller.get_single_boarding_pass(self.request.matchdict)
+@router.get("/")
+async def multiple_get(db: Session = Depends(get_db),
+                       page: Optional[int] = 0
+                       ) -> Optional[List[BoardingPassBase]]:
+    res = await BoardingPassController(db).get_all_boarding_passes(page=page)
+    if len(res) == 0:
+        raise HTTPException(status_code=404, detail="Boarding passes not found")
+    return res
 
-    @view(renderer="json", validators=request_validator("post_boarding_pass"))
-    def collection_post(self):
-        return self.controller.post_boarding_pass(self.request.POST)
 
-    @view(renderer="json")
-    def delete(self):
-        return self.controller.delete_boarding_pass(self.request.matchdict)
+@router.get("/{flight_id}/{ticket_no}")
+async def single_get(ticket_no: str, flight_id: int, db: Session = Depends(get_db)) -> BoardingPassBase:
+    if not valid_ticket_no(ticket_no):
+        raise HTTPException(status_code=422, detail="ticket_no must be 3 characters")
+    res = await BoardingPassController(db).get_single_boarding_pass(ticket_no, flight_id)
+    if res is None:
+        raise HTTPException(status_code=404, detail="Boarding pass not found")
+    return res
 
-    @view(renderer="json", validators=request_validator("put_boarding_pass"))
-    def put(self):
-        # data_to_update = {}
-        # keys = ['ticket_no', 'flight_id', 'boarding_no', 'seat_no']
-        # for key in keys:
-        #     if self.request.POST.get(key, default=None):
-        #         data_to_update[key] = self.request.params[key]
-        return self.controller.put_ticket({**self.request.matchdict, **self.request.POST})
+
+@router.post("/")
+async def post(data: BoardingPassPost, db: Session = Depends(get_db)) -> bool:
+    controller = BoardingPassController(db)
+    if not await controller.ticket_flight_exist(data.flight_id, data.ticket_no):
+        raise HTTPException(status_code=422, detail="ticket_no not exist on this flight")
+    if not await controller.seat_no_available(data.flight_id, data.seat_no):
+        raise HTTPException(status_code=422, detail="Seat already booked")
+    res = await BoardingPassController(db).post_boarding_pass(data)
+    if not res:
+        raise HTTPException(status_code=422, detail="Boarding pass already exist")
+    return res
+
+
+@router.delete("/{flight_id}/{ticket_no}")
+async def delete(ticket_no: str, flight_id: int, db: Session = Depends(get_db)):
+    if not valid_ticket_no(ticket_no):
+        raise HTTPException(status_code=422, detail="ticket_no must be 3 characters")
+    if not await BoardingPassController(db).delete_boarding_pass(ticket_no, flight_id):
+        raise HTTPException(status_code=404, detail="Boarding pass not found")
+
+
+@router.put("/{flight_id}/{ticket_no}")
+async def put(data: BoardingPassUpdate, ticket_no: str, flight_id: int, db: Session = Depends(get_db)):
+    if not valid_ticket_no(ticket_no):
+        raise HTTPException(status_code=422, detail="ticket_no must be 3 characters")
+    if not await BoardingPassController(db).put_boarding_pass(ticket_no, flight_id, data):
+        raise HTTPException(status_code=404, detail="Boarding pass not found")
