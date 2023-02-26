@@ -39,10 +39,10 @@ async def single_get(airport_code: str, db: Session = Depends(get_db)) -> Airpor
 
 @router.post("/", responses={404: {"description": "Airport already exist"}})
 async def post(data: AirportBase, db: Session = Depends(get_db)) -> bool:
-    return await AirportController(db).post_airport(data)
-    # if res is None:
-    #     raise HTTPException(status_code=404, detail="Airport cant create")
-    # return res
+    res = await AirportController(db).post_airport(data)
+    if not res:
+        raise HTTPException(status_code=404, detail="Airport already exist")
+    return res
 
 
 @router.delete("/{airport_code}")

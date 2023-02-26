@@ -42,7 +42,7 @@ async def single_get(book_ref: str, db: Session = Depends(get_db)) -> BookingRes
 async def post(data: BookingPostRequest, db: Session = Depends(get_db)):
     res = await BookingController(db).post_booking(data)
     if not res:
-        raise HTTPException(status_code=404, detail="Booking cant create")
+        raise HTTPException(status_code=404, detail="Booking already exist")
     return res
 
 

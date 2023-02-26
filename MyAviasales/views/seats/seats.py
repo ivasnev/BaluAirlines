@@ -46,10 +46,10 @@ async def single_get(seat_no: str, aircraft_code: str, db: Session = Depends(get
 
 @router.post("/", responses={404: {"description": "Seat already exist"}})
 async def post(data: SeatBase, db: Session = Depends(get_db)) -> bool:
-    return await SeatController(db).post_seat(data)
-    # if res is None:
-    #     raise HTTPException(status_code=404, detail="Seat cant create")
-    # return res
+    res = await SeatController(db).post_seat(data)
+    if not res:
+        raise HTTPException(status_code=404, detail="Seat already exist")
+    return res
 
 
 @router.delete("/{aircraft_code}/{seat_no}")

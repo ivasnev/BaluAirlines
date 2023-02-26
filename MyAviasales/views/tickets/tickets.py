@@ -42,9 +42,6 @@ async def single_get(ticket_no: str, db: Session = Depends(get_db)) -> TicketBas
 @router.post("/")
 async def post(data: TicketPost, db: Session = Depends(get_db)) -> bool:
     return await TicketController(db).post_ticket(data)
-    # if res is None:
-    #     raise HTTPException(status_code=404, detail="Ticket cant create")
-    # return res
 
 
 @router.delete("/{ticket_no}")

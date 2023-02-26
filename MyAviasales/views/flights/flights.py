@@ -143,8 +143,7 @@ async def single_get(departure_airport: str,
 
 @router.post("/")
 async def post(data: FlightBase, db: Session = Depends(get_db)) -> FlightBase:
-    res = await FlightController(db).post_flight(data)
-    return res
+    return await FlightController(db).post_flight(data)
 
 
 @router.delete("/{flight_id}")

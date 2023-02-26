@@ -6,7 +6,7 @@ class TicketFlightBase(BaseModel):
     flight_id: int
     ticket_no: str
     fare_conditions: str
-    amount = float
+    amount: float
 
     class Config:
         orm_mode = True

@@ -24,6 +24,12 @@ class SeatController(BaseController):
 
     async def post_seat(self, data: SeatBase) -> bool:
         """Добавление места"""
+        seat = self.session.query(Seat).filter(
+            Seat.aircraft_code == data.aircraft_code,
+            Seat.seat_no == data.seat_no
+        ).one_or_none()
+        if seat:
+            return False
         self.session.add(Seat(aircraft_code=data.aircraft_code,
                               seat_no=data.seat_no,
                               fare_conditions=data.fare_conditions)

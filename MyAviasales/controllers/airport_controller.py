@@ -28,6 +28,11 @@ class AirportController(BaseController):
 
     async def post_airport(self, data: AirportBase) -> bool:
         """Добавление аэропорта"""
+        airport = self.session.query(AirportsDatum).filter(
+            AirportsDatum.airport_code == data.airport_code
+        ).one_or_none()
+        if airport:
+            return False
         self.session.add(AirportsDatum(airport_code=data.airport_code,
                                        airport_name=data.airport_name.dict(),
                                        city=data.city.dict(),
