@@ -8,7 +8,17 @@ from sqlalchemy import and_
 
 
 class FlightController(BaseController):
+    """
+    Контроллер для работы с бд перелётов
+    """
+
     async def get_single_flight_by_id(self, key: int) -> Optional[FlightBase]:
+        """
+        Метод для получения перелёта по id записи в бд
+
+        :param key: Id записи бд
+        :return: Перелёт
+        """
         flight = self.session.query(Flight.flight_id,
                                     Flight.flight_no,
                                     Flight.scheduled_departure,
@@ -28,6 +38,13 @@ class FlightController(BaseController):
 
     async def get_single_flight_by_no_and_date(self, flight_no,
                                                departure_date) -> Optional[FlightBase]:
+        """
+        Метод для получения перелёта по номеру рейса и дате вылета
+
+        :param flight_no: Номер рейса
+        :param departure_date: Дата вылета
+        :return: Перелёт
+        """
         flight = self.session.query(Flight.flight_id,
                                     Flight.flight_no,
                                     Flight.scheduled_departure,
@@ -48,6 +65,14 @@ class FlightController(BaseController):
 
     async def get_single_flight_from_to(self, departure_airport,
                                         arrival_airport, departure_date) -> Optional[FlightBase]:
+        """
+        Получение перелёта по аэропорту вылета и прилёта и дате вылета
+
+        :param departure_airport: Аэропорт вылета
+        :param arrival_airport: Аэропорт прилёта
+        :param departure_date: Дата вылета
+        :return: Перелёт
+        """
         flight = self.session.query(Flight.flight_id,
                                     Flight.flight_no,
                                     Flight.scheduled_departure,
@@ -68,6 +93,13 @@ class FlightController(BaseController):
             return None
 
     async def get_all_for_a_day(self, departure_date: datetime, departure_airport: str) -> Optional[List[FlightBase]]:
+        """
+        Метод для получения всех вылетов из аэропорта на определённую дату
+
+        :param departure_date: Дата вылета
+        :param departure_airport: Аэропорт вылета
+        :return: Список перелётов
+        """
         flight_query = self.session.query(Flight.flight_id,
                                           Flight.scheduled_departure,
                                           Flight.scheduled_arrival,
@@ -85,6 +117,16 @@ class FlightController(BaseController):
 
     @staticmethod
     def bfs_paths_with_city(graph: dict, start: str, goal: str, airport_to_city: dict, max_transits: int = 2):
+        """
+        Генератор для обхода графа методом BFS
+
+        :param graph: Граф сохранённый в формате связанного списка
+        :param start: Стартовая точка
+        :param goal: Финальная точка
+        :param airport_to_city: Словарь который мапит аэропорты с городами
+        :param max_transits: Максимальное колличество пересадок
+        :return: Генератор
+        """
         queue = deque([(start, [start], [airport_to_city[start]])])
         while queue:
             (vertex, path, cites) = queue.pop()
@@ -99,6 +141,12 @@ class FlightController(BaseController):
                     queue.appendleft((_next, path + [_next], cites + [airport_to_city[_next]]))
 
     async def get_all_flights(self, page: int) -> Optional[List[FlightBase]]:
+        """
+        Метод для получения страницы из 50 записей перелётов
+
+        :param page: Номер страницы
+        :return: 50 записей перелётов
+        """
         page_size = 50
         flight_query = self.session.query(Flight.flight_id,
                                           Flight.flight_no,
@@ -116,7 +164,15 @@ class FlightController(BaseController):
 
     async def get_routes_from_to(self, departure_airport: str,
                                  arrival_airport: str,
-                                 max_transits: int):
+                                 max_transits: int) -> list:
+        """
+        Метод для получения всех перелётов из точки А в точку Б
+
+        :param departure_airport: Аэропорт вылета
+        :param arrival_airport: Аэропорт прилёта
+        :param max_transits: Колличество пересадок
+        :return: Список перелётов
+        """
         airports = self.session.query(AirportsDatum.airport_code, AirportsDatum.city).all()
         edges = self.session.query(Flight.departure_airport, Flight.arrival_airport).distinct().all()
         nodes = [x[0] for x in airports]
@@ -132,6 +188,17 @@ class FlightController(BaseController):
                                    max_transits: int,
                                    fare_condition: str,
                                    num_of_passengers: int) -> List[Optional[FlightPath]]:
+        """
+        Метод для получения всех рейсов из точки А в точку Б
+
+        :param departure_date: Дата вылета
+        :param departure_airport: Аэропорт вылета
+        :param arrival_airport: Аэропорт прилёта
+        :param max_transits: Колличество пересадок
+        :param fare_condition: Класс перелёта
+        :param num_of_passengers: Колличество пассажиров
+        :return: Список возможных перелётов с ценами за определённое колличество людей
+        """
         routes = await self.get_routes_from_to(departure_airport, arrival_airport, max_transits)
         res = []
 
@@ -181,6 +248,17 @@ class FlightController(BaseController):
                                         max_transits: int,
                                         fare_condition: str,
                                         num_of_passengers: int) -> Optional[List[float]]:
+        """
+        Метод для получения цен на неделю от даты для перелёта из точки А в точку Б
+
+        :param departure_date: Дата вылета
+        :param departure_airport: Аэропорт вылета
+        :param arrival_airport: Аэропорт прилёта
+        :param max_transits: Колличество пересадок
+        :param fare_condition: Класс перелёта
+        :param num_of_passengers: Колличество пассажиров
+        :return: Список лучших цен на неделю
+        """
         routes = await self.get_routes_from_to(departure_airport, arrival_airport, max_transits)
         cur_date = departure_date.date() - timedelta(days=3)
         costs_for_week = []
@@ -228,6 +306,12 @@ class FlightController(BaseController):
         return costs_for_week
 
     async def post_flight(self, data: FlightBase) -> FlightBase:
+        """
+        Метод для создания перелёта
+
+        :param data: Данные для создания перелёта
+        :return: Созданый перелёт
+        """
         obj_to_add = Flight(flight_no=data.flight_no,
                             scheduled_departure=data.scheduled_departure,
                             scheduled_arrival=data.scheduled_arrival,
@@ -244,20 +328,23 @@ class FlightController(BaseController):
         return FlightBase.from_orm(obj_to_add)
 
     async def delete_flight(self, key: int) -> bool:
+        """
+        Метод удаления перелёта
+
+        :param key: Номер перелёта
+        :return: Статус удаления(Удалён/ не удалён)
+        """
         if await self.get_single_flight_by_id(key) is None:
             return False
         self.session.delete(self.session.query(Flight).get(key))
         return True
 
     async def put_flight(self, flight_id: int, data: FlightUpdate) -> bool:
+        """
+        Метод обновления перелёта
+
+        :param flight_id: Номер перелёта в бд
+        :param data: Данные для обновления
+        :return: Статус обновления(Обновлён/ не обновлён)
+        """
         return self.base_put(Flight, flight_id, data)
-        # obj_to_update = self.session.query(Flight).get(flight_id).one_or_none()
-        # if obj_to_update is None:
-        #     return False
-        # data = data.dict()
-        # for key, value in data.items():
-        #     if value:
-        #         obj_to_update.__setattr__(key, value)
-        # self.session.flush()
-        # self.session.commit()
-        # return True

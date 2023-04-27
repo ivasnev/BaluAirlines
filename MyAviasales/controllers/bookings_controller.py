@@ -8,7 +8,16 @@ from MyAviasales.views.tickets.schema import TicketBase
 
 
 class BookingController(BaseController):
+    """
+    Контроллер для работы с бд бронирований
+    """
     async def get_all_bookings(self, page: int) -> Optional[List[BookingResponse]]:
+        """
+        Метод для получения страницы бронирований по 50 строк
+
+        :param page: Номер страницы
+        :return: 50 записей бронирований
+        """
         page_size = 50
         bookings_query = self.session.query(Booking.book_ref,
                                             Booking.book_date,
@@ -23,6 +32,12 @@ class BookingController(BaseController):
         return bookings
 
     async def get_single_booking(self, key: str) -> Optional[BookingResponse]:
+        """
+        Метод для получения бронирования по коду брони
+
+        :param key: Код брони
+        :return: Бронирование
+        """
         booking = self.session.query(Booking.book_ref,
                                      Booking.book_date,
                                      Booking.total_amount).filter_by(
@@ -33,6 +48,12 @@ class BookingController(BaseController):
         return booking
 
     async def post_booking(self, data: BookingPostRequest) -> Optional[BookingResponse]:
+        """
+        Метод для создания бронирования билетов на рейсы
+
+        :param data: Данные для создания бронирования
+        :return: Статус создания(Создан/ не создан)
+        """
         book_ref = self.generate_varchar_key(6, Booking)
         booking = Booking(book_ref=book_ref,
                           book_date=datetime.now(),
@@ -91,6 +112,12 @@ class BookingController(BaseController):
         return booking
 
     async def delete_booking(self, key: str) -> bool:
+        """
+        Метод удаления бронирования
+
+        :param key: Код брони
+        :return: Статус удаления(Удалён/ не удалён)
+        """
         booking = self.session.query(Booking).get(key)
         if booking is None:
             return False
@@ -107,14 +134,11 @@ class BookingController(BaseController):
         return True
 
     async def put_booking(self, book_ref: str, data: BookingUpdate) -> bool:
+        """
+        Метод обновления брони
+
+        :param book_ref: Код брони
+        :param data: Новые данные
+        :return: Статус обновления(Обновлён/ не обновлён)
+        """
         return self.base_put(Booking, book_ref, data)
-        # obj_to_update = self.session.query(Booking).get(book_ref).one_or_none()
-        # if obj_to_update is None:
-        #     return False
-        # data = data.dict()
-        # for key, value in data.items():
-        #     if value:
-        #         obj_to_update.__setattr__(key, value)
-        # self.session.flush()
-        # self.session.commit()
-        # return True

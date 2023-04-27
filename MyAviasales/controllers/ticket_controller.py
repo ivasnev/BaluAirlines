@@ -5,7 +5,17 @@ from typing import Optional, List
 
 
 class TicketController(BaseController):
+    """
+    Контроллер для работы с бд билетов
+    """
+
     async def get_all_ticket_by_book_ref(self, key: str) -> Optional[List[TicketBase]]:
+        """
+        Метод для получения всех билетов для бронирования
+        
+        :param key:  Код бронирования
+        :return: Список всех билетов
+        """
         tickets = self.session.query(
             Ticket.ticket_no, Ticket.book_ref, Ticket.passenger_id, Ticket.passenger_name, Ticket.contact_data
         ).filter(
@@ -14,6 +24,12 @@ class TicketController(BaseController):
         return [TicketBase.from_orm(x) for x in tickets if x is not None]
 
     async def get_all_tickets(self, page: int = 0) -> Optional[List[TicketBase]]:
+        """
+        Метод для получения страницы из 50 записей билетов
+        
+        :param page: Номер страницы
+        :return: 50 записей билетов
+        """
         page_size = 50
         tickets = self.session.query(
             Ticket
@@ -22,6 +38,12 @@ class TicketController(BaseController):
         return [TicketBase.from_orm(row) for row in tickets]
 
     async def get_single_ticket(self, ticket_no: str) -> Optional[TicketBase]:
+        """
+        Метод для получения билета по номеру
+        
+        :param ticket_no: Номер билета
+        :return: Билет
+        """
         ticket = self.session.query(
             Ticket
         ).filter(
@@ -32,6 +54,12 @@ class TicketController(BaseController):
         return ticket
 
     async def post_ticket(self, data: TicketPost):
+        """
+        Метод для создания билета
+        
+        :param data: Данные для создания билетов
+        :return: Статус создания(Создан/ не создан)
+        """
         ticket_no = self.generate_digit_varchar_key(13, Ticket)
         self.session.add(Ticket(
             ticket_no=ticket_no,
@@ -44,6 +72,12 @@ class TicketController(BaseController):
         return True
 
     async def delete_ticket(self, ticket_no: str):
+        """
+        Метод для удаления билетов
+        
+        :param ticket_no:  Номер билета
+        :return: Статус удаления(Удалён/ не удалён)
+        """
         ticket = self.session.query(Ticket).filter(
             Ticket.ticket_no == ticket_no
         ).one_or_none()
@@ -68,4 +102,11 @@ class TicketController(BaseController):
         return True
 
     async def put_ticket(self, ticket_no: str, data: TicketUpdate):
+        """
+        Метод для обновления билета
+        
+        :param ticket_no: Номер билетаНомер билета
+        :param data: Данные для обновления
+        :return: Статус обновления(Обновлён/ не обновлён)
+        """
         return self.base_put(Ticket, ticket_no, data)
