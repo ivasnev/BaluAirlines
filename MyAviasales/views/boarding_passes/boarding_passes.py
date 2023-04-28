@@ -16,6 +16,12 @@ router = APIRouter(
 
 
 def valid_ticket_no(code) -> bool:
+    """
+    Валидантор номера билета
+
+    :param code: Номер билета
+    :return: Валидный/ не валидный
+    """
     return 0 < len(code) <= 13
 
 
@@ -23,6 +29,13 @@ def valid_ticket_no(code) -> bool:
 async def multiple_get(db: Session = Depends(get_db),
                        page: Optional[int] = 0
                        ) -> Optional[List[BoardingPassBase]]:
+    """
+    Вьюха для получения списка посадочных талонов
+
+    :param db: Сессия для работы с бд
+    :param page: Номер страницы
+    :return: Сформированый ответ в формате JSON
+    """
     res = await BoardingPassController(db).get_all_boarding_passes(page=page)
     if len(res) == 0:
         raise HTTPException(status_code=404, detail="Boarding passes not found")
@@ -31,6 +44,14 @@ async def multiple_get(db: Session = Depends(get_db),
 
 @router.get("/{flight_id}/{ticket_no}")
 async def single_get(ticket_no: str, flight_id: int, db: Session = Depends(get_db)) -> BoardingPassBase:
+    """
+    Вьюха для получения одного посадочного талона
+
+    :param ticket_no: Номер билета
+    :param flight_id: Номер рейса
+    :param db: Сессия для работы с бд
+    :return: Сформированый ответ в формате JSON
+    """
     if not valid_ticket_no(ticket_no):
         raise HTTPException(status_code=422, detail="ticket_no must be 3 characters")
     res = await BoardingPassController(db).get_single_boarding_pass(ticket_no, flight_id)
@@ -41,6 +62,13 @@ async def single_get(ticket_no: str, flight_id: int, db: Session = Depends(get_d
 
 @router.post("/")
 async def post(data: BoardingPassPost, db: Session = Depends(get_db)) -> bool:
+    """
+    Вьюха для создания посадочного талона
+
+    :param data: Данные требуемые для работы контроллера
+    :param db: Сессия для работы с бд
+    :return: Сформированый ответ в формате JSON
+    """
     controller = BoardingPassController(db)
     if not await controller.ticket_flight_exist(data.flight_id, data.ticket_no):
         raise HTTPException(status_code=422, detail="ticket_no not exist on this flight")
@@ -54,6 +82,14 @@ async def post(data: BoardingPassPost, db: Session = Depends(get_db)) -> bool:
 
 @router.delete("/{flight_id}/{ticket_no}")
 async def delete(ticket_no: str, flight_id: int, db: Session = Depends(get_db)):
+    """
+    Вьюха для удаления посадочного талона
+
+    :param ticket_no: Номер билета
+    :param flight_id: Номер рейса
+    :param db: Сессия для работы с бд
+    :return: Сформированый ответ в формате JSON
+    """
     if not valid_ticket_no(ticket_no):
         raise HTTPException(status_code=422, detail="ticket_no must be 3 characters")
     if not await BoardingPassController(db).delete_boarding_pass(ticket_no, flight_id):
@@ -62,6 +98,15 @@ async def delete(ticket_no: str, flight_id: int, db: Session = Depends(get_db)):
 
 @router.put("/{flight_id}/{ticket_no}")
 async def put(data: BoardingPassUpdate, ticket_no: str, flight_id: int, db: Session = Depends(get_db)):
+    """
+    Вьюха для обновления посадочного талона
+
+    :param data: Данные требуемые для работы контроллера
+    :param ticket_no: Номер билета
+    :param flight_id: Номер рейса
+    :param db: Сессия для работы с бд
+    :return: Сформированый ответ в формате JSON
+    """
     if not valid_ticket_no(ticket_no):
         raise HTTPException(status_code=422, detail="ticket_no must be 3 characters")
     if not await BoardingPassController(db).put_boarding_pass(ticket_no, flight_id, data):

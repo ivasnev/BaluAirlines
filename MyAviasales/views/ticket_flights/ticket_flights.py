@@ -16,6 +16,12 @@ router = APIRouter(
 
 
 def valid_ticket_no(code) -> bool:
+    """
+    Валидатор для номера билета
+
+    :param code: Номер билета
+    :return: Валидный/ не валидный
+    """
     return len(code) == 13
 
 
@@ -23,6 +29,13 @@ def valid_ticket_no(code) -> bool:
 async def multiple_get(db: Session = Depends(get_db),
                        page: Optional[int] = 0
                        ) -> Optional[List[TicketFlightBase]]:
+    """
+    Вьюха для получения всех связей между билетом и рейсом
+
+    :param db: Сессия для работы с бд
+    :param page: Номер страницы
+    :return: Сформированый ответ в формате JSON
+    """
     res = await TicketFlightController(db).get_all_ticket_flights(page=page)
     if len(res) == 0:
         raise HTTPException(status_code=404, detail="Ticket not found")
@@ -31,6 +44,14 @@ async def multiple_get(db: Session = Depends(get_db),
 
 @router.get("/{ticket_no}/{flight_id}")
 async def single_get(ticket_no: str, flight_id: int, db: Session = Depends(get_db)) -> TicketFlightBase:
+    """
+    Вьюха для получения связи между билетом и перелётом
+
+    :param ticket_no: Номер билета
+    :param flight_id: Номер рейса
+    :param db: Сессия для работы с бд
+    :return: Сформированый ответ в формате JSON
+    """
     if not valid_ticket_no(ticket_no):
         raise HTTPException(status_code=422, detail="ticket_no must be 13 characters")
     res = await TicketFlightController(db).get_single_ticket_flight(ticket_no, flight_id)
@@ -41,6 +62,13 @@ async def single_get(ticket_no: str, flight_id: int, db: Session = Depends(get_d
 
 @router.post("/")
 async def post(data: TicketFlightBase, db: Session = Depends(get_db)) -> bool:
+    """
+    Вьюха для создания связи билета и перелёта
+
+    :param data: Данные требуемые для работы контроллера
+    :param db: Сессия для работы с бд
+    :return: Сформированый ответ в формате JSON
+    """
     res = await TicketFlightController(db).post_ticket_flight(data)
     if not res:
         raise HTTPException(status_code=404, detail="Ticket already exist")
@@ -49,6 +77,14 @@ async def post(data: TicketFlightBase, db: Session = Depends(get_db)) -> bool:
 
 @router.delete("/{ticket_no}/{flight_id}")
 async def delete(ticket_no: str, flight_id: int, db: Session = Depends(get_db)):
+    """
+    Вьюха для удаления связи билета и перелёта
+
+    :param ticket_no: Номер билета
+    :param flight_id: Номер рейса
+    :param db: Сессия для работы с бд
+    :return: Сформированый ответ в формате JSON
+    """
     if not valid_ticket_no(ticket_no):
         raise HTTPException(status_code=422, detail="ticket_no must be 13 characters")
     if not await TicketFlightController(db).delete_ticket_flight(ticket_no, flight_id):
@@ -57,6 +93,15 @@ async def delete(ticket_no: str, flight_id: int, db: Session = Depends(get_db)):
 
 @router.put("/{ticket_no}/{flight_id}")
 async def put(data: TicketFlightUpdate, ticket_no: str, flight_id: int, db: Session = Depends(get_db)):
+    """
+    Вьюха для обновления связи билета и перелёта
+
+    :param data: Данные требуемые для работы контроллера
+    :param ticket_no: Номер билета
+    :param flight_id: Номер рейса
+    :param db: Сессия для работы с бд
+    :return: Сформированый ответ в формате JSON
+    """
     if not valid_ticket_no(ticket_no):
         raise HTTPException(status_code=422, detail="ticket_no must be 13 characters")
     if not await TicketFlightController(db).put_ticket_flight(ticket_no, flight_id, data):

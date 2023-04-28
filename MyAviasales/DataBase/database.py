@@ -20,6 +20,11 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False)
 # session = Session()
 
 def get_db():
+    """
+    Генератор сессии для контекстного менеджера
+
+    :return: Генератор
+    """
     db = SessionLocal()
     try:
         yield db
