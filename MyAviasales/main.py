@@ -7,6 +7,7 @@ from MyAviasales.views.seats import seats
 from MyAviasales.views.boarding_passes import boarding_passes
 from MyAviasales.views.tickets import tickets
 from MyAviasales.views.ticket_flights import ticket_flights
+from fastapi.middleware.cors import CORSMiddleware
 
 description = """
 BaluAirlines API helps you do fly to fly easily and cheaply. 🚀
@@ -34,6 +35,13 @@ app.include_router(bookings.router)
 app.include_router(seats.router)
 app.include_router(tickets.router)
 app.include_router(ticket_flights.router)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # app.include_router(
 #     admin.router,

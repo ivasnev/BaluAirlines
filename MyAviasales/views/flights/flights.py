@@ -153,6 +153,8 @@ async def filter_get(
         raise HTTPException(status_code=422, detail='departure_airport code must be 3 characters')
     if not valid_airport_code(arrival_airport):
         raise HTTPException(status_code=422, detail='arrival_airport code must be 3 characters')
+    if departure_airport == arrival_airport:
+        raise HTTPException(status_code=422, detail='departure airport cant be arrival airport')
     res = await FlightController(db).get_flights_from_to_(
         departure_date=departure_date,
         departure_airport=departure_airport,
