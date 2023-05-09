@@ -2,7 +2,7 @@ from MyAviasales.controllers.base_controller import BaseController
 from MyAviasales.models import Flight, AirportsDatum
 from collections import deque
 from typing import Optional, List
-from MyAviasales.views.flights.schema import FlightBase, FlightUpdate, FlightPath
+from MyAviasales.views.flights.schema import FlightBase, FlightUpdate, FlightPath, FlightPathBase
 from datetime import datetime, timedelta
 from sqlalchemy import and_
 
@@ -233,7 +233,7 @@ class FlightController(BaseController):
 
                 dist += self.get_dist(eval(departure_airport), eval(arrival_airport))
                 departure_date = flight['scheduled_arrival']
-                flights.append(FlightBase.from_orm(flight))
+                flights.append(FlightPathBase.from_orm(flight))
             else:
                 res.append(FlightPath(cost=self.generate_cost(fare_condition, dist, st_date.date()) * num_of_passengers,
                                       fare_condition=fare_condition,

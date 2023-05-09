@@ -1,5 +1,6 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, validator, EmailStr
+from MyAviasales.views.flights.schema import FlightBase
 
 
 class ContactData(BaseModel):
@@ -47,6 +48,13 @@ class TicketBase(BaseModel):
         if len(v) > 20:
             raise ValueError('must be less 20 characters')
         return v
+
+
+class TicketForBooking(TicketBase):
+    flight: Optional[List[FlightBase]]
+
+    class Config:
+        orm_mode = True
 
 
 class TicketPost(BaseModel):

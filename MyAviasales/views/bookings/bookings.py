@@ -59,7 +59,7 @@ async def single_get(book_ref: str, db: Session = Depends(get_db)) -> BookingRes
 
 
 @router.post("/", responses={404: {"description": "Booking already exist"}})
-async def post(data: BookingPostRequest, db: Session = Depends(get_db)):
+async def post(data: BookingPostRequest, db: Session = Depends(get_db)) -> Optional[BookingResponse]:
     """
     Вьюха для создания бронирования
     

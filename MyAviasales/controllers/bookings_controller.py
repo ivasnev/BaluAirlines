@@ -3,8 +3,8 @@ from MyAviasales.controllers.base_controller import BaseController
 from MyAviasales.models import Booking, Ticket, TicketFlight, Flight, AirportsDatum
 from .ticket_controller import TicketController
 from typing import Optional, List
-from MyAviasales.views.bookings.schema import BookingUpdate, BookingResponse, BookingPostRequest
-from MyAviasales.views.tickets.schema import TicketBase
+from MyAviasales.views.bookings.schema import BookingUpdate, BookingResponse, BookingPostRequest, BookingResponsePost
+from MyAviasales.views.tickets.schema import TicketBase, TicketForBooking
 
 
 class BookingController(BaseController):

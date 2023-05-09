@@ -1,6 +1,7 @@
 from MyAviasales.views.tickets.schema import *
 from MyAviasales.controllers.base_controller import BaseController
-from MyAviasales.models import Booking, Ticket, TicketFlight, BoardingPass
+from MyAviasales.controllers.flights_controller import FlightController
+from MyAviasales.models import Booking, Ticket, TicketFlight, BoardingPass, Flight
 from typing import Optional, List
 
 
@@ -9,7 +10,7 @@ class TicketController(BaseController):
     Контроллер для работы с бд билетов
     """
 
-    async def get_all_ticket_by_book_ref(self, key: str) -> Optional[List[TicketBase]]:
+    async def get_all_ticket_by_book_ref(self, key: str) -> Optional[List[TicketForBooking]]:
         """
         Метод для получения всех билетов для бронирования
         
@@ -21,7 +22,23 @@ class TicketController(BaseController):
         ).filter(
             Ticket.book_ref == key
         ).all()
-        return [TicketBase.from_orm(x) for x in tickets if x is not None]
+        res = [TicketForBooking.from_orm(x) for x in tickets if x is not None]
+        for ticket in res:
+            id_flights = self.session.query(
+                TicketFlight.flight_id
+            ).filter(
+                TicketFlight.ticket_no == ticket.ticket_no
+            )
+            id_flights = [r.flight_id for r in id_flights]
+            if id_flights is None:
+                continue
+            flights = self.session.query(
+                    Flight
+                ).filter(
+                    Flight.flight_id.in_(id_flights)
+                )
+            ticket.flight = [FlightBase.from_orm(x) for x in flights]
+        return res
 
     async def get_all_tickets(self, page: int = 0) -> Optional[List[TicketBase]]:
         """

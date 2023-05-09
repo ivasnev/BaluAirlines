@@ -51,12 +51,28 @@ class FlightUpdate(BaseModel):
     actual_arrival: Optional[datetime]
 
 
+class FlightPathBase(BaseModel):
+    flight_id: int
+    flight_no: str
+    scheduled_departure: datetime
+    scheduled_arrival: datetime
+    departure_airport: str
+    arrival_airport: str
+    status: str
+    aircraft_code: str
+    actual_departure: Optional[datetime]
+    actual_arrival: Optional[datetime]
+
+    class Config:
+        orm_mode = True
+
+
 class FlightPath(BaseModel):
     fare_condition: str
     num_of_passengers: int
     cost: float
     time: str
-    flights: List[FlightBase]
+    flights: List[FlightPathBase]
 
     @validator('fare_condition')
     def fare_conditions_one_of(cls, v):

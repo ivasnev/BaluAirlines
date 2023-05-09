@@ -63,7 +63,7 @@ class AirportController(BaseController):
         """
         Метод для удаления аэропорта
 
-        :param airport_code:
+        :param airport_code: Код аэропорта
         :return: Статус удаления(Удалён/ не удалён)
         """
         flights = self.session.query(Flight).filter(

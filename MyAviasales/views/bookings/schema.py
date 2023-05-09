@@ -1,7 +1,7 @@
 from typing import Optional, List
 from pydantic import BaseModel, validator, EmailStr
 from datetime import datetime
-from MyAviasales.views.tickets.schema import TicketBase
+from MyAviasales.views.tickets.schema import TicketBase, TicketForBooking
 
 
 class ContactData(BaseModel):
@@ -63,6 +63,10 @@ class BookingPostRequest(BaseModel):
 
 
 class BookingResponse(BookingBase):
+    tickets: Optional[List[TicketForBooking]]
+
+
+class BookingResponsePost(BookingBase):
     tickets: Optional[List[TicketBase]]
 
 
