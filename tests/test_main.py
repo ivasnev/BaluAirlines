@@ -33,6 +33,6 @@ def clear_all_tables():
 
 
 def test_base_func():
+    clear_all_tables()
     for inst in class_inst.values():
         inst.test_base_func()
-    clear_all_tables()

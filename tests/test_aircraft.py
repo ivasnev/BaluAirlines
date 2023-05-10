@@ -8,6 +8,12 @@ class TestAircraft(BaseTest):
             "model": {"en": "Test", "ru": "Test"},
             "range": 12345
         }
+        self.test_delete("Tes", code=404)
+        self.test_put(
+            "Tes",
+            data_input=data,
+            code=404
+        )
         res = self.test_post(
             data_input=data
         )
@@ -15,16 +21,23 @@ class TestAircraft(BaseTest):
             res.get('aircraft_code'),
             data=data
         )
+        self.test_post(
+            data_input=data,
+            code=404
+        )
+        self.test_get_all()
+        data_new = {
+            "aircraft_code": "Tes",
+            "model": {"en": "Test2", "ru": "Test2"},
+            "range": 10
+        }
         self.test_put(
             "Tes",
-            {
-                "range": 10
-            }
+            data_new
         )
-        data["range"] = 10
         self.test_get_by_key(
             "Tes",
-            data=data
+            data=data_new
         )
         self.test_delete("Tes")
         self.test_get_by_key("Tes", code=200)
