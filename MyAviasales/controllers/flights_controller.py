@@ -2,7 +2,7 @@ from MyAviasales.controllers.base_controller import BaseController
 from MyAviasales.models import Flight, AirportsDatum
 from collections import deque
 from typing import Optional, List
-from MyAviasales.views.flights.schema import FlightBase, FlightUpdate, FlightPath, FlightPathBase
+from MyAviasales.views.flights.schema import FlightBase, FlightUpdate, FlightPath, FlightPathBase, FlightPostResponse
 from datetime import datetime, timedelta
 from sqlalchemy import and_
 
@@ -305,7 +305,7 @@ class FlightController(BaseController):
             costs_for_week.append(min(res, default=None))
         return costs_for_week
 
-    async def post_flight(self, data: FlightBase) -> FlightBase:
+    async def post_flight(self, data: FlightBase) -> FlightPostResponse:
         """
         Метод для создания перелёта
 
@@ -325,7 +325,7 @@ class FlightController(BaseController):
         self.session.add(obj_to_add)
         self.session.flush()
         self.session.commit()
-        return FlightBase.from_orm(obj_to_add)
+        return FlightPostResponse.from_orm(obj_to_add)
 
     async def delete_flight(self, key: int) -> bool:
         """
@@ -337,6 +337,7 @@ class FlightController(BaseController):
         if await self.get_single_flight_by_id(key) is None:
             return False
         self.session.delete(self.session.query(Flight).get(key))
+        self.session.commit()
         return True
 
     async def put_flight(self, flight_id: int, data: FlightUpdate) -> bool:

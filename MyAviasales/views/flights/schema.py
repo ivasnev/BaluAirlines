@@ -40,6 +40,10 @@ class FlightBase(BaseModel):
         return v
 
 
+class FlightPostResponse(FlightBase):
+    flight_id: int
+
+
 class FlightUpdate(BaseModel):
     scheduled_departure: Optional[datetime]
     scheduled_arrival: Optional[datetime]

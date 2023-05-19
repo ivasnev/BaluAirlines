@@ -82,8 +82,11 @@ async def delete(airport_code: str, db: Session = Depends(get_db)):
     """
     if not valid_airport_code(airport_code):
         raise HTTPException(status_code=422, detail="airport_code must be 3 characters")
-    if not await AirportController(db).delete_airport(airport_code):
+    res = await AirportController(db).delete_airport(airport_code)
+    if res is None:
         raise HTTPException(status_code=404, detail="Airport not found")
+    return res
+
 
 
 @router.put("/{airport_code}")
