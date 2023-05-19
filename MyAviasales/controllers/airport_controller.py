@@ -59,13 +59,16 @@ class AirportController(BaseController):
         self.session.commit()
         return True
 
-    async def delete_airport(self, airport_code: str) -> bool:
+    async def delete_airport(self, airport_code: str) -> Optional[AirportBase]:
         """
         Метод для удаления аэропорта
 
         :param airport_code: Код аэропорта
-        :return: Статус удаления(Удалён/ не удалён)
+        :return: Информация об удалённом аэропорте или ничего
         """
+        airport = self.session.query(AirportsDatum).get(airport_code)
+        if airport is None:
+            return None
         flights = self.session.query(Flight).filter(
             or_(Flight.departure_airport == airport_code, Flight.arrival_airport == airport_code)
         ).all()
@@ -74,7 +77,7 @@ class AirportController(BaseController):
 
         self.session.flush()
         self.session.commit()
-        return True
+        return AirportBase.from_orm(airport)
 
     async def put_airport(self, airport_code, data: AirportUpdate) -> bool:
         """

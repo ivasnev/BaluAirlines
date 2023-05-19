@@ -1,7 +1,7 @@
 class BaseTest:
-    def __init__(self, client):
+    def __init__(self, client, base_url):
         self.client = client
-        self.base_url = "/aircraft/"
+        self.base_url = base_url
 
     def test_get_all(self, code: int = 200, data: dict = None):
         response = self.client.get(self.base_url)

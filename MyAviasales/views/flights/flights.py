@@ -225,7 +225,7 @@ async def single_get(departure_airport: str,
 
 
 @router.post("/")
-async def post(data: FlightBase, db: Session = Depends(get_db)) -> FlightBase:
+async def post(data: FlightBase, db: Session = Depends(get_db)) -> FlightPostResponse:
     """
     Вьюха для создания рейса
 
