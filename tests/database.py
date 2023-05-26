@@ -12,7 +12,7 @@ SQLALCHEMY_DATABASE_URL = (
     f"postgresql://{bd_user}:{bd_password}@{postgre_server}:{bd_port}/{bd_name}"
 )
 Base = declarative_base()
-engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=debug)
+engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=False)
 Base.metadata.bind = engine
 SessionLocal = sessionmaker(bind=engine, autoflush=False)
 

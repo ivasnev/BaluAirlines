@@ -5,6 +5,7 @@ from typing import Optional, List
 from MyAviasales.views.flights.schema import FlightBase, FlightUpdate, FlightPath, FlightPathBase, FlightPostResponse
 from datetime import datetime, timedelta
 from sqlalchemy import and_
+import pytz
 
 
 class FlightController(BaseController):
@@ -100,6 +101,10 @@ class FlightController(BaseController):
         :param departure_airport: Аэропорт вылета
         :return: Список перелётов
         """
+        if departure_date.tzinfo is None:
+            departure_date = pytz.utc.localize(departure_date)
+        else:
+            departure_date += timedelta(hours=3)
         flight_query = self.session.query(Flight.flight_id,
                                           Flight.scheduled_departure,
                                           Flight.scheduled_arrival,
@@ -109,8 +114,8 @@ class FlightController(BaseController):
                                           Flight.arrival_airport,
                                           Flight.aircraft_code
                                           ).filter(
-            Flight.scheduled_departure > departure_date,
-            Flight.scheduled_departure < departure_date + timedelta(days=1),
+            Flight.scheduled_departure >= departure_date,
+            Flight.scheduled_departure <= departure_date + timedelta(days=1),
             Flight.departure_airport == departure_airport
         ).order_by(Flight.scheduled_departure).all()
         return [FlightBase.from_orm(x) for x in flight_query if x is not None]
@@ -187,10 +192,12 @@ class FlightController(BaseController):
                                    arrival_airport: str,
                                    max_transits: int,
                                    fare_condition: str,
-                                   num_of_passengers: int) -> List[Optional[FlightPath]]:
+                                   num_of_passengers: int,
+                                   date_between: bool) -> List[Optional[FlightPath]]:
         """
         Метод для получения всех рейсов из точки А в точку Б
 
+        :param date_between: Вывести ближайшие
         :param departure_date: Дата вылета
         :param departure_airport: Аэропорт вылета
         :param arrival_airport: Аэропорт прилёта
@@ -201,12 +208,17 @@ class FlightController(BaseController):
         """
         routes = await self.get_routes_from_to(departure_airport, arrival_airport, max_transits)
         res = []
+        if departure_date.tzinfo is None:
+            departure_date = pytz.utc.localize(departure_date)
+        else:
+            departure_date += timedelta(hours=3)
 
         for route in routes:
             flights = []
             dist = 0.0
             prev = route[0]
             st_date = None
+            tmp_date = departure_date
             for key in route[1:]:
                 flight = self.session.query(Flight.flight_id,
                                             Flight.scheduled_departure,
@@ -217,10 +229,14 @@ class FlightController(BaseController):
                                             Flight.arrival_airport,
                                             Flight.aircraft_code
                                             ).filter(
-                    Flight.scheduled_departure > departure_date, Flight.departure_airport == prev,
+                    Flight.scheduled_departure >= tmp_date,
+                    Flight.departure_airport == prev,
                     Flight.arrival_airport == key,
-                    Flight.status == "Scheduled"
-                ).order_by(Flight.scheduled_departure).first()
+                    Flight.status.in_(["Scheduled", "On Time", "Delayed"])
+                ).order_by(Flight.scheduled_departure)
+                if date_between:
+                    flight = flight.filter(Flight.scheduled_departure <= tmp_date+timedelta(days=1))
+                flight = flight.first()
                 prev = key
                 if flight is None:
                     break
@@ -232,13 +248,13 @@ class FlightController(BaseController):
                     AirportsDatum.airport_code == flight.arrival_airport).first()[0]
 
                 dist += self.get_dist(eval(departure_airport), eval(arrival_airport))
-                departure_date = flight['scheduled_arrival']
+                tmp_date = flight['scheduled_arrival']
                 flights.append(FlightPathBase.from_orm(flight))
             else:
                 res.append(FlightPath(cost=self.generate_cost(fare_condition, dist, st_date.date()) * num_of_passengers,
                                       fare_condition=fare_condition,
                                       num_of_passengers=num_of_passengers,
-                                      time=str(departure_date - st_date),
+                                      time=str(tmp_date - st_date),
                                       flights=flights))
         return res
 
@@ -260,7 +276,11 @@ class FlightController(BaseController):
         :return: Список лучших цен на неделю
         """
         routes = await self.get_routes_from_to(departure_airport, arrival_airport, max_transits)
-        cur_date = departure_date.date() - timedelta(days=3)
+        if departure_date.tzinfo is None:
+            departure_date = pytz.utc.localize(departure_date)
+        else:
+            departure_date += timedelta(hours=3)
+        cur_date = departure_date.date()
         costs_for_week = []
         for i in range(7):
             res = []
@@ -283,7 +303,7 @@ class FlightController(BaseController):
                         Flight.scheduled_departure >= departure_date,
                         Flight.departure_airport == prev,
                         Flight.arrival_airport == key,
-                        Flight.status == "Scheduled"
+                        Flight.status.in_(["Scheduled", "On Time", "Delayed"])
                     ).order_by(Flight.scheduled_departure).first()
                     prev = key
                     if flight is None:

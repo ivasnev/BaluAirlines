@@ -134,10 +134,12 @@ async def filter_get(
         fare_condition: Optional[str] = 'Economy',
         num_of_passengers: Optional[int] = 1,
         db: Session = Depends(get_db),
+        date_between: bool = False,
 ) -> List[Optional[FlightPath]]:
     """
     Вьюха для получения рейсов по фильтрам
 
+    :param date_between: Вывести ближайшие
     :param departure_airport: Аэропорт вылета
     :param arrival_airport: Аэропорт прилёта
     :param max_transits: Колличество пересадок (максимум)
@@ -161,7 +163,8 @@ async def filter_get(
         arrival_airport=arrival_airport,
         max_transits=max_transits,
         fare_condition=fare_condition,
-        num_of_passengers=num_of_passengers
+        num_of_passengers=num_of_passengers,
+        date_between=date_between
     )
     if len(res) == 0:
         raise HTTPException(status_code=404, detail="Flight not found")
